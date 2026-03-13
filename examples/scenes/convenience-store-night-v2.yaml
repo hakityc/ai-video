@@ -1,0 +1,32 @@
+version: "2"
+id: convenience-store-night-v2
+name: Convenience Store Night V2
+dimensions:
+  subject_motion:
+    mode: locked_by_pack
+    text: fixed indoor retail space with no environmental motion
+  environment_light:
+    mode: locked_by_pack
+    text: cool fluorescent convenience-store lighting, dim rainy street glow outside the glass, no dramatic color shift
+  medium_rendering:
+    mode: locked_by_pack
+    text: photo-realistic live-action, grounded urban suspense tone
+  temporal_state:
+    mode: locked_by_pack
+    text: baseline quiet store before the anomaly peaks
+  camera_optics:
+    mode: locked_by_pack
+    text: locked-off wide aisle composition
+fixed_elements:
+  - cashier counter on the left foreground
+  - beverage refrigerators on the rear wall
+  - snack aisle shelf on the right side
+  - glass entrance door on the back-right
+  - continuous ceiling light band above the center aisle
+forbidden_drift:
+  - different store layout
+  - extra customers
+  - daylight exterior
+  - different number of refrigerators
+allowed_camera_templates:
+  - store-aisle-locked-wide-v2

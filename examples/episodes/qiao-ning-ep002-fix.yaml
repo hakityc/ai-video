@@ -1,0 +1,165 @@
+version: "2"
+episode: qiao-ning-ep002-fix
+character_bible: ../characters/qiao-ning.yaml
+scene_pack: ../scenes/convenience-store-night-v1.yaml
+prop_pack: ../props/store-core-props-v2.yaml
+shot_template: ../shot-templates/store-aisle-locked-wide-v1.yaml
+provider: seedance
+anchor_image: ../../assets/characters/qiao-ning/reference/front.jpeg
+initial_bridge_frame: ../../artifacts/video/seedance-rollout/qiao-ning/episode-002/shot-003/bridge/tail-06.jpg
+review_context: >
+  Continuation fix for the convenience-store micro-story. The first three beats already exist and must be preserved:
+  the same protagonist, same store layout, the same dark refrigerator light, and the dropped cup on the floor.
+  This repair pass only replaces the broken back half of the scene. The new shots must feel like a direct continuation
+  from the previous shot-003 bridge frame without camera drift or wardrobe drift.
+master_scene_candidates: 2
+shot_delta_candidates: 3
+bridge_frame_selection:
+  tail_ratio: 0.2
+  max_candidates: 6
+master_scene:
+  dimensions:
+    subject_motion:
+      mode: open_for_text
+      text: Qiao Ning stands in the same aisle after noticing the dropped cup, tense and listening
+    environment_light:
+      mode: locked_by_pack
+      text: ""
+    medium_rendering:
+      mode: locked_by_pack
+      text: ""
+    temporal_state:
+      mode: open_for_text
+      text: the same dark refrigerator light and the dropped cup remain before the new threat appears
+    camera_optics:
+      mode: locked_by_pack
+      text: ""
+  negative_prompt: ""
+shots:
+  - shot_id: shot-004
+    dramatic_purpose: shift the threat from the floor clue to the entrance source and make the wet footprints unmistakable
+    emotional_state: restrained fear becoming full alarm
+    must_show:
+      - Qiao Ning from head to at least knees
+      - the entrance glass and a wet footprint trail clearly inside the store in the same composition
+      - her boots still on
+      - the same dropped cup still present in the aisle near the lower frame
+    must_not_hide:
+      - the footprints
+      - the entrance door
+      - her upper body and face
+    forbidden_compositions:
+      - feet-dominant framing
+      - barefoot read
+      - low-angle floor closeup
+      - top crop that removes her head
+      - side-profile half-body crop
+      - frame where only exterior puddles are visible and no indoor footprint trail is visible
+    dimensions:
+      subject_motion:
+        mode: open_for_text
+        text: from the same locked wide aisle viewpoint, Qiao Ning keeps her body mark stable and turns toward the entrance in restrained fear while remaining visible from head to knees
+      environment_light:
+        mode: locked_by_pack
+        text: ""
+      medium_rendering:
+        mode: locked_by_pack
+        text: ""
+      temporal_state:
+        mode: open_for_text
+        text: three to four wet shoe prints appear on the dry store floor from the entrance toward the aisle while the dropped cup and the same dark refrigerator light remain in place
+      camera_optics:
+        mode: locked_by_pack
+        text: ""
+    allowed_changes:
+      - gaze shift toward entrance
+      - three to four wet shoe prints appear inside the store
+      - dropped cup remains
+      - same refrigerator light remains dark
+    forbidden_changes:
+      - new customers
+      - door relocation
+      - feet-dominant framing
+      - barefoot read
+    video_prompt_hint: fear sharpens into a supernatural clue
+  - shot_id: shot-005
+    dramatic_purpose: show the store actively responding by making the receipt extension the dominant new event
+    emotional_state: fear giving way to stunned pattern recognition
+    must_show:
+      - Qiao Ning's face and upper torso
+      - the cashier counter and clearly visible extended receipt strip
+      - the wet footprints still present
+    must_not_hide:
+      - the receipt strip
+      - the cashier till area
+    forbidden_compositions:
+      - crowding the counter out of frame
+      - letting unrelated floor details dominate the shot
+    dimensions:
+      subject_motion:
+        mode: open_for_text
+        text: Qiao Ning turns only her eyes toward the cashier counter while keeping her shoulders and feet fixed
+      environment_light:
+        mode: locked_by_pack
+        text: ""
+      medium_rendering:
+        mode: locked_by_pack
+        text: ""
+      temporal_state:
+        mode: open_for_text
+        text: one printed receipt strip extends from the cashier till and hangs over the counter edge while the wet footprints, dropped cup, and same dark refrigerator light remain
+      camera_optics:
+        mode: locked_by_pack
+        text: ""
+    allowed_changes:
+      - eye-line shift toward counter
+      - receipt strip extends from the till
+      - wet footprints remain
+      - dropped cup remains
+      - same refrigerator light remains dark
+    forbidden_changes:
+      - new people
+      - counter layout change
+      - crop hiding the receipt strip
+    video_prompt_hint: the store begins answering back
+  - shot_id: shot-006
+    dramatic_purpose: land the final confirmation that the store is responding to her by pairing the phone raise with the till display glow
+    emotional_state: cold realization and silent confirmation
+    must_show:
+      - Qiao Ning raising the phone closer to her chest
+      - the glowing till display in the same readable composition
+      - the hanging receipt still present
+    must_not_hide:
+      - the phone raise
+      - the till display glow
+    forbidden_compositions:
+      - framing that reads like casual texting
+      - crop that hides the till display
+    dimensions:
+      subject_motion:
+        mode: open_for_text
+        text: Qiao Ning lifts the phone a little closer to her chest and stares at the counter in cold realization without stepping away
+      environment_light:
+        mode: locked_by_pack
+        text: ""
+      medium_rendering:
+        mode: locked_by_pack
+        text: ""
+      temporal_state:
+        mode: open_for_text
+        text: cashier till display glows on while the hanging receipt, wet footprints, dropped cup, and same dark refrigerator light remain in place
+      camera_optics:
+        mode: locked_by_pack
+        text: ""
+    allowed_changes:
+      - small phone raise
+      - cashier till display glows on
+      - receipt strip remains
+      - wet footprints remain
+      - dropped cup remains
+      - same refrigerator light remains dark
+    forbidden_changes:
+      - new people
+      - protagonist position shift
+      - crop hiding the till display
+    video_prompt_hint: the first chapter ends with a silent confirmation

@@ -1,0 +1,48 @@
+version: "1"
+id: morgue-core-props
+name: Morgue Core Props
+scene_pack: ../scenes/morgue-night.yaml
+props:
+  corpse_table:
+    anchors:
+      - brushed steel autopsy table
+      - centered in frame for locked wide shots
+      - same orientation across sequence
+  corpse_primary:
+    anchors:
+      - adult female corpse
+      - lying flat on table
+      - white sheet covering body
+      - only face exposed in neutral state
+    states:
+      covered_neutral:
+        changes:
+          - face visible
+        locked:
+          - body pose
+          - table position
+      eyes_open:
+        changes:
+          - eyes open
+        locked:
+          - same head position
+          - same sheet coverage
+          - same table position
+  tray_trolley:
+    anchors:
+      - two-level steel trolley
+      - parked at left side of room
+      - same silhouette in all shots
+  report_sheet:
+    anchors:
+      - single printed autopsy report
+      - appears only when story calls for it
+      - placed on right counter, not on corpse table
+  recorder:
+    anchors:
+      - compact handheld recorder
+      - appears only in aftermath beat
+forbidden_drift:
+  - corpse uncovered in one shot and re-covered differently in the next without explicit story reason
+  - report moving from right counter to corpse table
+  - trolley swapping shape or shelf count

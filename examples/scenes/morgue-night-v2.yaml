@@ -1,0 +1,33 @@
+version: "2"
+id: morgue-night-v2
+name: Municipal Morgue Night V2
+dimensions:
+  subject_motion:
+    mode: locked_by_pack
+    text: fixed room with no environmental motion
+  environment_light:
+    mode: locked_by_pack
+    text: cold blue-green clinical lighting, two white surgical lamps overhead, no daylight spill
+  medium_rendering:
+    mode: locked_by_pack
+    text: photo-realistic live-action, grounded Chinese supernatural procedural tone
+  temporal_state:
+    mode: locked_by_pack
+    text: neutral pre-incident morgue baseline
+  camera_optics:
+    mode: locked_by_pack
+    text: locked-off frontal wide composition
+fixed_elements:
+  - corpse table centered toward camera
+  - tray trolley on the left side
+  - stainless counter on the right side
+  - grey lockers on the back-left wall
+  - single door on the rear-right wall
+  - two white surgical lamps visible overhead
+forbidden_drift:
+  - extra windows
+  - different door style
+  - different locker count
+  - different number of lamps
+allowed_camera_templates:
+  - morgue-locked-wide-v2

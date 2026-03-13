@@ -1,0 +1,266 @@
+version: "2"
+episode: qiao-ning-ep003
+character_bible: ../characters/qiao-ning.yaml
+scene_pack: ../scenes/convenience-store-night-v2.yaml
+prop_pack: ../props/store-core-props-v3.yaml
+shot_template: ../shot-templates/store-aisle-locked-wide-v2.yaml
+provider: seedance
+anchor_image: ../../assets/characters/qiao-ning/reference/front.jpeg
+review_context: >
+  Single-scene late-night convenience store micro-story. The protagonist, store layout,
+  cashier counter, snack shelf, refrigerators, entrance door, and ceiling lighting must stay stable.
+  The story must progress in six linked beats without adding new people or moving the camera.
+  Every shot must clearly land a single dominant dramatic event.
+master_scene_candidates: 3
+shot_delta_candidates: 2
+bridge_frame_selection:
+  tail_ratio: 0.2
+  max_candidates: 6
+master_scene:
+  dimensions:
+    subject_motion:
+      mode: open_for_text
+      text: Qiao Ning stands still in the center aisle holding her phone low, listening to the quiet store
+    environment_light:
+      mode: locked_by_pack
+      text: ""
+    medium_rendering:
+      mode: locked_by_pack
+      text: ""
+    temporal_state:
+      mode: open_for_text
+      text: all store props are undisturbed and the rainy exterior remains background only
+    camera_optics:
+      mode: locked_by_pack
+      text: ""
+  negative_prompt: ""
+shots:
+  - shot_id: shot-001
+    dramatic_purpose: establish the store geography and make the first electrical anomaly readable
+    emotional_state: quiet alertness turning into suspicion
+    must_show:
+      - Qiao Ning in the aisle from head to upper legs
+      - the ceiling light band with one center fluorescent tube fully dark while adjacent tubes stay bright
+    must_not_hide:
+      - the dark gap in the overhead light band
+      - Qiao Ning's face
+    forbidden_compositions:
+      - top-heavy crop that removes the ceiling light band
+      - close-up framing that loses the store geography
+      - frame where all overhead tubes remain evenly lit
+    dimensions:
+      subject_motion:
+        mode: open_for_text
+        text: Qiao Ning stays planted, lifts one hand slightly, and looks up toward the ceiling light band without stepping forward
+      environment_light:
+        mode: locked_by_pack
+        text: ""
+      medium_rendering:
+        mode: locked_by_pack
+        text: ""
+      temporal_state:
+        mode: open_for_text
+        text: one center fluorescent tube above the aisle snaps fully dark while adjacent ceiling tubes remain bright and the rest of the store stays unchanged
+      camera_optics:
+        mode: locked_by_pack
+        text: ""
+    allowed_changes:
+      - hand movement
+      - one center overhead fluorescent tube snaps fully dark
+    forbidden_changes:
+      - new props
+      - protagonist position shift
+    video_prompt_hint: tension rises from a small electrical anomaly
+  - shot_id: shot-002
+    dramatic_purpose: turn the anomaly into a threat by holding on her reaction without changing the setup
+    emotional_state: controlled fear and hyper-focus
+    must_show:
+      - Qiao Ning front-facing enough for her reaction to read
+      - the same dark gap in the overhead light band
+    must_not_hide:
+      - her face
+      - the overhead light band
+    forbidden_compositions:
+      - aggressive zoom that changes the lens feel
+      - body crop that removes her reaction
+    dimensions:
+      subject_motion:
+        mode: open_for_text
+        text: Qiao Ning stiffens in place and keeps her gaze on the same dark overhead tube without stepping forward
+      environment_light:
+        mode: locked_by_pack
+        text: ""
+      medium_rendering:
+        mode: locked_by_pack
+        text: ""
+      temporal_state:
+        mode: open_for_text
+        text: the same center overhead fluorescent tube stays fully dark while adjacent tubes remain bright and the rest of the store remains unchanged
+      camera_optics:
+        mode: locked_by_pack
+        text: ""
+    allowed_changes:
+      - facial expression shift
+      - same dark overhead tube remains off
+    forbidden_changes:
+      - new props
+      - protagonist position shift
+    video_prompt_hint: the small glitch feels intentional
+  - shot_id: shot-003
+    dramatic_purpose: introduce the first physical clue on the floor and redirect her attention downward
+    emotional_state: dread focusing into investigation
+    must_show:
+      - Qiao Ning's upper body and face angled downward
+      - the dropped cup on the aisle floor
+    must_not_hide:
+      - the cup
+      - her downward gaze
+    forbidden_compositions:
+      - crop that removes the cup
+      - crop that removes her face entirely
+    dimensions:
+      subject_motion:
+        mode: open_for_text
+        text: Qiao Ning lowers her gaze toward the aisle floor while keeping both feet on the same floor mark
+      environment_light:
+        mode: locked_by_pack
+        text: ""
+      medium_rendering:
+        mode: locked_by_pack
+        text: ""
+      temporal_state:
+        mode: open_for_text
+        text: one dropped instant noodle cup appears near the center aisle while the same dark overhead tube remains off
+      camera_optics:
+        mode: locked_by_pack
+        text: ""
+    allowed_changes:
+      - gaze shift toward floor
+      - one dropped cup appears on the floor
+      - same dark overhead tube remains off
+    forbidden_changes:
+      - shelf change
+      - new people
+    video_prompt_hint: unease becomes a visible sign
+  - shot_id: shot-004
+    dramatic_purpose: shift the threat from the floor clue to the entrance source and make the wet footprints unmistakable
+    emotional_state: restrained fear becoming full alarm
+    must_show:
+      - Qiao Ning from head to at least knees
+      - the entrance glass and the wet footprint trail in the same composition
+      - her boots still on
+    must_not_hide:
+      - the footprints
+      - the entrance door
+      - her upper body and face
+    forbidden_compositions:
+      - feet-dominant framing
+      - barefoot read
+      - low-angle floor closeup
+      - top crop that removes her head
+    dimensions:
+      subject_motion:
+        mode: open_for_text
+        text: Qiao Ning keeps her body mark stable and turns her head toward the entrance glass in restrained fear while remaining visible from head to knees
+      environment_light:
+        mode: locked_by_pack
+        text: ""
+      medium_rendering:
+        mode: locked_by_pack
+        text: ""
+      temporal_state:
+        mode: open_for_text
+        text: one wet footprint trail appears from the entrance toward the aisle while the dropped cup and the same dark overhead tube remain in place
+      camera_optics:
+        mode: locked_by_pack
+        text: ""
+    allowed_changes:
+      - gaze shift toward entrance
+      - wet footprint trail appears
+      - dropped cup remains
+      - same dark overhead tube remains off
+    forbidden_changes:
+      - new customers
+      - door relocation
+      - feet-dominant framing
+      - barefoot read
+    video_prompt_hint: fear sharpens into a supernatural clue
+  - shot_id: shot-005
+    dramatic_purpose: show the store actively responding by making the receipt extension the dominant new event
+    emotional_state: fear giving way to stunned pattern recognition
+    must_show:
+      - Qiao Ning's face and upper torso
+      - the cashier counter and clearly visible extended receipt strip
+    must_not_hide:
+      - the receipt strip
+      - the cashier till area
+    forbidden_compositions:
+      - crowding the counter out of frame
+      - letting unrelated floor details dominate the shot
+    dimensions:
+      subject_motion:
+        mode: open_for_text
+        text: Qiao Ning turns only her eyes toward the cashier counter while keeping her shoulders and feet fixed
+      environment_light:
+        mode: locked_by_pack
+        text: ""
+      medium_rendering:
+        mode: locked_by_pack
+        text: ""
+      temporal_state:
+        mode: open_for_text
+        text: one printed receipt strip extends from the cashier till and hangs over the counter edge while the wet footprints, dropped cup, and same dark overhead tube remain
+      camera_optics:
+        mode: locked_by_pack
+        text: ""
+    allowed_changes:
+      - eye-line shift toward counter
+      - receipt strip extends from the till
+      - wet footprints remain
+      - dropped cup remains
+      - same dark overhead tube remains off
+    forbidden_changes:
+      - new people
+      - counter layout change
+      - crop hiding the receipt strip
+    video_prompt_hint: the store begins answering back
+  - shot_id: shot-006
+    dramatic_purpose: land the final confirmation that the store is responding to her by pairing the phone raise with the till display glow
+    emotional_state: cold realization and silent confirmation
+    must_show:
+      - Qiao Ning raising the phone closer to her chest
+      - the glowing till display in the same readable composition
+    must_not_hide:
+      - the phone raise
+      - the till display glow
+    forbidden_compositions:
+      - framing that reads like casual texting
+      - crop that hides the till display
+    dimensions:
+      subject_motion:
+        mode: open_for_text
+        text: Qiao Ning lifts the phone a little closer to her chest and stares at the counter in cold realization without stepping away
+      environment_light:
+        mode: locked_by_pack
+        text: ""
+      medium_rendering:
+        mode: locked_by_pack
+        text: ""
+      temporal_state:
+        mode: open_for_text
+        text: cashier till display glows on while the hanging receipt, wet footprints, dropped cup, and same dark overhead tube remain in place
+      camera_optics:
+        mode: locked_by_pack
+        text: ""
+    allowed_changes:
+      - small phone raise
+      - cashier till display glows on
+      - receipt strip remains
+      - wet footprints remain
+      - dropped cup remains
+      - same dark overhead tube remains off
+    forbidden_changes:
+      - new people
+      - protagonist position shift
+      - crop hiding the till display
+    video_prompt_hint: the first chapter ends with a silent confirmation

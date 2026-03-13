@@ -1,0 +1,44 @@
+episode: tomb-raider-female-ep006
+character_slug: tomb-raider-female
+title: Morgue Keyframe Gate Locked Camera
+story_mainline: modern forensic supernatural case line
+review_context: >
+  Keyframe-only continuity check with a locked camera. All three stills must use the
+  exact same frontal wide composition: corpse table centered toward camera, Lin Xia
+  standing on the right third of frame, tray trolley on the left edge, stainless counter
+  on the right edge, lockers on the back wall, one door on the rear right, and two surgical
+  lamps overhead. Only the narrative state may change, not the room layout or camera angle.
+anchor_image: assets/characters/tomb-raider-female/reference/front.jpeg
+shots:
+  - shot_id: shot-001
+    keyframe_prompt: >
+      locked-off frontal wide shot, exact same camera angle and composition for all three stills,
+      municipal morgue room, corpse table centered toward camera, tray trolley at far left edge,
+      stainless counter at far right edge, lockers on back wall, single door at rear right,
+      two white surgical lamps overhead, cold blue-green clinical light, Lin Xia standing on the
+      right third of frame facing camera, ash-blonde bob, faint freckles, pale skin, brown leather
+      jacket, grey hoodie, fitted black pants, dark scuffed boots, black digital watch, simple silver
+      charm pendant, black nitrile gloves, same posture and body scale in every shot, corpse under white
+      sheet on the centered table with only the face exposed, grounded realistic morgue still, no prop drift,
+      no camera drift, no wardrobe drift
+  - shot_id: shot-002
+    keyframe_prompt: >
+      locked-off frontal wide shot, exact same camera angle and composition as previous still, municipal
+      morgue room, corpse table centered toward camera, tray trolley at far left edge, stainless counter at
+      far right edge, lockers on back wall, single door at rear right, two white surgical lamps overhead,
+      cold blue-green clinical light, Lin Xia standing on the right third of frame in the same posture, same
+      ash-blonde bob, same faint freckles, same pale skin, same brown leather jacket, same grey hoodie, same
+      fitted black pants, same dark scuffed boots, same black digital watch, same simple silver charm pendant,
+      same black nitrile gloves, corpse still under the same white sheet on the centered table with only the
+      face exposed but eyes now open, grounded realistic morgue still, no prop drift, no camera drift, no wardrobe drift
+  - shot_id: shot-003
+    keyframe_prompt: >
+      locked-off frontal wide shot, exact same camera angle and composition as previous still, municipal
+      morgue room, corpse table centered toward camera, tray trolley at far left edge, stainless counter at
+      far right edge, lockers on back wall, single door at rear right, two white surgical lamps overhead,
+      cold blue-green clinical light, Lin Xia standing on the right third of frame in the same posture, same
+      ash-blonde bob, same faint freckles, same pale skin, same brown leather jacket, same grey hoodie, same
+      fitted black pants, same dark scuffed boots, same black digital watch, same simple silver charm pendant,
+      same black nitrile gloves, corpse still under the same white sheet on the centered table with only the
+      face exposed, a single autopsy report now lying on the far right counter, grounded realistic morgue still,
+      no prop drift, no camera drift, no wardrobe drift

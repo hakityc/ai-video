@@ -1,0 +1,41 @@
+version: "2"
+id: morgue-locked-wide-v2
+name: Morgue Locked Wide V2
+scene_pack: ../scenes/morgue-night-v2.yaml
+dimensions:
+  subject_motion:
+    mode: open_for_text
+    text: minimal actor motion only
+  environment_light:
+    mode: locked_by_pack
+    text: ""
+  medium_rendering:
+    mode: locked_by_pack
+    text: ""
+  temporal_state:
+    mode: open_for_text
+    text: shot-specific state change only
+  camera_optics:
+    mode: locked_by_pack
+    text: locked-off frontal wide shot, 28-35mm equivalent, no camera drift
+framing:
+  - corpse table centered toward camera
+  - protagonist placed on right third of frame
+  - left trolley and right counter remain visible
+blocking_rules:
+  - keep protagonist on the same floor mark across the sequence
+  - keep corpse on the same table orientation across the sequence
+  - do not rotate or re-stage the room
+allowed_changes:
+  - hand movement
+  - facial expression shift
+  - corpse eye state
+  - one story-state prop on the right counter
+forbidden_changes:
+  - side swap
+  - camera angle change
+  - room layout change
+  - lighting rig change
+prompt_suffix:
+  - single-scene micro-story keyframe
+  - stable layout for sequential video generation

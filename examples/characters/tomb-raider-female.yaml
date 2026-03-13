@@ -1,0 +1,60 @@
+version: '1'
+slug: tomb-raider-female
+name: Lin Xia
+identity_anchors:
+  face:
+  - pale cool-toned skin
+  - sharp almond-shaped grey-green eyes
+  - faint freckles across nose bridge
+  - defined high cheekbones
+  - small 1cm faint scar on left jaw
+  - neutral focused resting expression
+  - no heavy makeup, bare faced
+  hair:
+  - chin-length short ash blonde bob
+  - messy unkempt split ends
+  - 1cm dark natural roots grown out
+  - side-swept, no bangs
+  - slightly dry texture from long night shifts
+  body:
+  - slim athletic toned build
+  - 168cm height
+  - defined lean arm muscle from fieldwork
+  - subtle runner's leg definition
+  - calloused fingertips from specimen handling and file work
+  outfit:
+  - worn faded brown leather jacket
+  - oversized charcoal grey hoodie under jacket
+  - fitted black straight-leg work pants
+  - scuffed dark brown steel-toe work boots
+  - jacket sleeves rolled to elbows
+  accessories:
+  - compact evidence satchel with case files
+  - white forensic coat carried or worn in clinical scenes
+  - nitrile gloves for examination scenes
+  - waterproof black digital watch on left wrist
+  - thin silver chain with a worn child charm pendant
+  - black phone and evidence tags in jacket pocket
+style_descriptors:
+- moody cinematic realism
+- cold clinical and rain-soaked urban lighting
+- contemporary Chinese supernatural procedural aesthetic
+- gritty lived-in practical styling
+- restrained forensic detail texturing
+- soft natural shadow casting
+- eerie modern urban atmospheric context
+- photo-realistic, no stylization
+color_palette: []
+prompt_template: ${name}, ${identity}, ${scene_prompt}, ${style}
+negative_prompt: anime, cartoon, stylized art, over-saturated colors, airbrushed
+  perfect skin, exaggerated facial features, glamorous makeup, fantasy armor,
+  desert ruins, tomb corridor, archaeological gear, bright high-key lighting,
+  unrealistic proportions, CGI artifacts, fantasy non-human traits, over-sexualized
+  design
+reference_images:
+- path: ../../assets/characters/tomb-raider-female/reference/front.jpeg
+  view: front
+  expression: neutral
+- path: ../../assets/characters/tomb-raider-female/reference/three-quarter.jpeg
+  view: three-quarter
+  expression: calm

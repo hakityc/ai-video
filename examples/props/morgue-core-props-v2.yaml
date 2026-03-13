@@ -1,0 +1,19 @@
+version: "2"
+id: morgue-core-props-v2
+name: Morgue Core Props V2
+scene_pack: ../scenes/morgue-night-v2.yaml
+fixed_props:
+  - brushed steel autopsy table
+  - white sheet covering the corpse body
+  - exposed corpse face only in baseline state
+  - two-level steel tray trolley
+  - empty right-side stainless counter
+allowed_temporal_changes:
+  - corpse eyes open while body and sheet position stay fixed
+  - one autopsy report appears on the right counter
+  - one compact recorder appears on the right counter
+forbidden_drift:
+  - corpse fully uncovered
+  - report placed on the corpse table
+  - trolley shape changes
+  - counter sink configuration changes

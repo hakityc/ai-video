@@ -1,0 +1,83 @@
+version: "2"
+episode: qiao-ning-shot005-fix
+character_bible: ../characters/qiao-ning.yaml
+scene_pack: ../scenes/convenience-store-night-v1.yaml
+prop_pack: ../props/store-core-props-v2.yaml
+shot_template: ../shot-templates/store-aisle-locked-wide-v1.yaml
+provider: seedance
+anchor_image: ../../assets/characters/qiao-ning/reference/front.jpeg
+initial_bridge_frame: ../../artifacts/video/seedance-rollout/qiao-ning/shot004-fix/shot-004/candidate-01-frames/frame-01.jpg
+review_context: >
+  Single-shot repair pass for episode-002 shot-005. Continue directly from the repaired shot-004 frame.
+  Preserve the same protagonist, same store layout, the same wet footprint trail inside the store,
+  the same dropped cup, and the same dark refrigerator light. The new dominant event is the receipt strip
+  extending from the till.
+master_scene_candidates: 1
+shot_delta_candidates: 2
+bridge_frame_selection:
+  tail_ratio: 0.2
+  max_candidates: 6
+master_scene:
+  dimensions:
+    subject_motion:
+      mode: open_for_text
+      text: Qiao Ning remains in the same aisle after seeing the wet shoe prints
+    environment_light:
+      mode: locked_by_pack
+      text: ""
+    medium_rendering:
+      mode: locked_by_pack
+      text: ""
+    temporal_state:
+      mode: open_for_text
+      text: the wet footprint trail, the dropped cup, and the same dark refrigerator light remain in place
+    camera_optics:
+      mode: locked_by_pack
+      text: ""
+  negative_prompt: ""
+shots:
+  - shot_id: shot-005
+    dramatic_purpose: make the receipt strip the dominant new event while preserving the wet floor evidence
+    emotional_state: fear giving way to stunned pattern recognition
+    must_show:
+      - Qiao Ning's face and upper torso
+      - the cashier counter and clearly visible extended receipt strip
+      - the wet footprint trail still visible inside the store
+      - the dropped cup still present near the lower frame
+    must_not_hide:
+      - the receipt strip
+      - the cashier till area
+      - the indoor footprint trail
+    forbidden_compositions:
+      - crowding the counter out of frame
+      - letting unrelated floor details dominate the shot
+      - adding a second free-standing receipt prop in the middle ground
+      - frame where the refrigerator light turns back on
+    dimensions:
+      subject_motion:
+        mode: open_for_text
+        text: Qiao Ning turns only her eyes toward the cashier counter while keeping her shoulders and floor mark stable
+      environment_light:
+        mode: locked_by_pack
+        text: ""
+      medium_rendering:
+        mode: locked_by_pack
+        text: ""
+      temporal_state:
+        mode: open_for_text
+        text: one printed receipt strip extends from the cashier till and hangs over the counter edge while the wet footprint trail, the dropped cup, and the same dark refrigerator light remain unchanged
+      camera_optics:
+        mode: locked_by_pack
+        text: ""
+    allowed_changes:
+      - eye-line shift toward counter
+      - receipt strip extends from the till
+      - wet footprints remain
+      - dropped cup remains
+      - same refrigerator light remains dark
+    forbidden_changes:
+      - new people
+      - counter layout change
+      - crop hiding the receipt strip
+      - second receipt prop in the aisle
+    video_prompt_hint: the store begins answering back

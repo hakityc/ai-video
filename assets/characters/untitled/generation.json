@@ -1,0 +1,80 @@
+{
+  "concept": "",
+  "brief": {
+    "name": "Elara Voss",
+    "age_range": "34-41",
+    "face": [
+      "high cheekbones",
+      "faint 1cm scar across left eyebrow",
+      "sun-freckled nose and cheeks",
+      "downturned hazel eyes",
+      "chapped full lips",
+      "soft rounded jawline",
+      "permanent slight squint from outdoor work"
+    ],
+    "hair": [
+      "shoulder-length wavy auburn",
+      "premature gray streaks at temples",
+      "half-tied back with frayed leather cord",
+      "wind-tousled loose face-framing strands",
+      "dry split ends from sun and cold exposure"
+    ],
+    "body": [
+      "5'7\" athletic lean build",
+      "calloused scarred knuckles",
+      "slightly bowed legs from decades of hiking",
+      "sun-darkened forearms with faint scratch marks",
+      "tiny pine tree tattoo on inner left wrist",
+      "subtle limp in right leg from old climbing injury"
+    ],
+    "outfit": [
+      "faded olive canvas field jacket with corduroy elbow patches",
+      "well-worn heathered gray thermal undershirt",
+      "high-waisted charcoal cargo pants with patched knee",
+      "scuffed waterproof steel-toe work boots",
+      "thick cream wool socks peeking over boot cuffs",
+      "frayed black neck gaiter tucked into jacket collar"
+    ],
+    "accessories": [
+      "dented brass compass on worn leather lanyard",
+      "scratched analog waterproof watch on left wrist",
+      "worn brown leather work gloves tucked in belt loop",
+      "folded polaroid of a teen girl in jacket breast pocket",
+      "half-empty beeswax lip balm sticking out of jacket pocket"
+    ],
+    "style_descriptors": [
+      "gritty rural drama cinematic aesthetic",
+      "natural golden hour lighting",
+      "lived-in realistic texture",
+      "soft muted earth tone color grade",
+      "authentic weathered character design",
+      "subtle understated physical cues"
+    ],
+    "negative_prompt": [
+      "plastic smooth skin",
+      "perfect makeup",
+      "overly styled salon-perfect hair",
+      "glamorous exaggerated features",
+      "clean unwrinkled pristine clothing",
+      "unrealistic idealized proportions",
+      "cartoonish stylized features",
+      "bright neon colors",
+      "polished brand-new accessories"
+    ]
+  },
+  "image_prompts": [
+    {
+      "suffix": "front",
+      "prompt": "Elara Voss, high cheekbones, faint 1cm scar across left eyebrow, sun-freckled nose and cheeks, downturned hazel eyes, chapped full lips, soft rounded jawline, permanent slight squint from outdoor work, shoulder-length wavy auburn, premature gray streaks at temples, half-tied back with frayed leather cord, wind-tousled loose face-framing strands, dry split ends from sun and cold exposure, 5'7\" athletic lean build, calloused scarred knuckles, slightly bowed legs from decades of hiking, sun-darkened forearms with faint scratch marks, tiny pine tree tattoo on inner left wrist, subtle limp in right leg from old climbing injury, faded olive canvas field jacket with corduroy elbow patches, well-worn heathered gray thermal undershirt, high-waisted charcoal cargo pants with patched knee, scuffed waterproof steel-toe work boots, thick cream wool socks peeking over boot cuffs, frayed black neck gaiter tucked into jacket collar, dented brass compass on worn leather lanyard, scratched analog waterproof watch on left wrist, worn brown leather work gloves tucked in belt loop, folded polaroid of a teen girl in jacket breast pocket, half-empty beeswax lip balm sticking out of jacket pocket, gritty rural drama cinematic aesthetic, natural golden hour lighting, lived-in realistic texture, soft muted earth tone color grade, authentic weathered character design, subtle understated physical cues, grounded cinematic live-action character design, high detail, realistic skin texture, natural anatomy, consistent face identity, straight-on portrait, neutral expression, chest-up, clean studio background, soft key light, character reference image"
+    },
+    {
+      "suffix": "three-quarter",
+      "prompt": "Elara Voss, high cheekbones, faint 1cm scar across left eyebrow, sun-freckled nose and cheeks, downturned hazel eyes, chapped full lips, soft rounded jawline, permanent slight squint from outdoor work, shoulder-length wavy auburn, premature gray streaks at temples, half-tied back with frayed leather cord, wind-tousled loose face-framing strands, dry split ends from sun and cold exposure, 5'7\" athletic lean build, calloused scarred knuckles, slightly bowed legs from decades of hiking, sun-darkened forearms with faint scratch marks, tiny pine tree tattoo on inner left wrist, subtle limp in right leg from old climbing injury, faded olive canvas field jacket with corduroy elbow patches, well-worn heathered gray thermal undershirt, high-waisted charcoal cargo pants with patched knee, scuffed waterproof steel-toe work boots, thick cream wool socks peeking over boot cuffs, frayed black neck gaiter tucked into jacket collar, dented brass compass on worn leather lanyard, scratched analog waterproof watch on left wrist, worn brown leather work gloves tucked in belt loop, folded polaroid of a teen girl in jacket breast pocket, half-empty beeswax lip balm sticking out of jacket pocket, gritty rural drama cinematic aesthetic, natural golden hour lighting, lived-in realistic texture, soft muted earth tone color grade, authentic weathered character design, subtle understated physical cues, grounded cinematic live-action character design, high detail, realistic skin texture, natural anatomy, consistent face identity, three-quarter portrait, calm expression, chest-up, clean studio background, soft cinematic rim light, character reference image"
+    }
+  ],
+  "outputs": [
+    "assets/characters/untitled/reference/untitled-front.jpeg",
+    "assets/characters/untitled/reference/untitled-three-quarter.jpeg"
+  ],
+  "character_yaml": "examples/characters/untitled.yaml"
+}

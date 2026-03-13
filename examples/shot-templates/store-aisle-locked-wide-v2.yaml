@@ -1,0 +1,43 @@
+version: "2"
+id: store-aisle-locked-wide-v2
+name: Store Aisle Locked Wide V2
+scene_pack: ../scenes/convenience-store-night-v2.yaml
+dimensions:
+  subject_motion:
+    mode: open_for_text
+    text: minimal actor motion only
+  environment_light:
+    mode: locked_by_pack
+    text: ""
+  medium_rendering:
+    mode: locked_by_pack
+    text: ""
+  temporal_state:
+    mode: open_for_text
+    text: shot-specific anomaly change only
+  camera_optics:
+    mode: locked_by_pack
+    text: locked-off wide shot, 28-35mm equivalent, no camera drift
+framing:
+  - protagonist stands on the left half of the center aisle
+  - cashier counter edge remains visible in the left foreground
+  - right snack shelf and rear refrigerators remain visible
+  - keep the ceiling light band visible across the top of the frame
+blocking_rules:
+  - keep protagonist on the same floor mark across the sequence
+  - keep entrance door, shelf, and refrigerators aligned across the sequence
+  - do not push in or tilt the camera
+  - do not crop above the ceiling light band
+allowed_changes:
+  - hand movement
+  - facial expression shift
+  - one anomaly prop on the floor
+  - one lighting-state change above the aisle
+forbidden_changes:
+  - camera angle change
+  - room layout change
+  - extra characters
+  - wardrobe change
+prompt_suffix:
+  - single-scene micro-story keyframe
+  - stable layout for sequential video generation

@@ -1,0 +1,71 @@
+{
+  "concept": "A grounded cinematic female tomb explorer inspired by the provided reference image: pale-skinned young woman, short ash-blonde bob hair, grey-green eyes, slim athletic build, brown leather jacket over dark hoodie, black fitted jeans, worn brown boots, practical flashlight, subtle sidearm holster, contemporary occult archaeology adventure in the spirit of Chinese tomb-raiding mystery, moody realism, eerie underground atmosphere, not stylized, not anime.",
+  "brief": {
+    "name": "Lin Yue",
+    "age_range": "24-30",
+    "face": [
+      "pale cool-toned skin",
+      "sharp almond-shaped grey-green eyes",
+      "faint freckles across nose bridge",
+      "defined high cheekbones",
+      "small 1cm faint scar on left jaw",
+      "neutral focused resting expression",
+      "no heavy makeup, bare faced"
+    ],
+    "hair": [
+      "chin-length short ash blonde bob",
+      "messy unkempt split ends",
+      "1cm dark natural roots grown out",
+      "side-swept, no bangs",
+      "dusted with faint light brown cave dust"
+    ],
+    "body": [
+      "slim athletic toned build",
+      "168cm height",
+      "defined lean arm muscle from climbing",
+      "subtle runner's leg definition",
+      "calloused fingertips from tool use"
+    ],
+    "outfit": [
+      "worn faded brown leather jacket",
+      "oversized charcoal grey hoodie under jacket",
+      "high-waisted fitted black cargo jeans with reinforced knees",
+      "scuffed dark brown steel-toe work boots",
+      "jacket sleeves rolled to elbows"
+    ],
+    "accessories": [
+      "heavy-duty LED flashlight clipped to jacket pocket",
+      "low-profile black hip holster on right hip",
+      "worn canvas utility belt with small trowel pouch",
+      "waterproof black digital watch on left wrist",
+      "small brass compass on leather cord around neck",
+      "fingerless black work gloves tucked in back pocket"
+    ],
+    "style_descriptors": [
+      "moody cinematic realism",
+      "low cool damp cave lighting",
+      "contemporary Chinese tomb-raiding aesthetic",
+      "gritty lived-in practical styling",
+      "subtle dust and grime texturing",
+      "soft natural shadow casting",
+      "eerie underground atmospheric context",
+      "photo-realistic, no stylization"
+    ],
+    "negative_prompt": "anime, cartoon, stylized art, over-saturated colors, airbrushed perfect skin, exaggerated facial features, glamorous makeup, formal clothing, bright high-key lighting, unrealistic proportions, CGI artifacts, immaculate clean clothing, fantasy non-human traits, over-sexualized design"
+  },
+  "image_prompts": [
+    {
+      "suffix": "front",
+      "prompt": "Lin Yue, pale cool-toned skin, sharp almond-shaped grey-green eyes, faint freckles across nose bridge, defined high cheekbones, small 1cm faint scar on left jaw, neutral focused resting expression, no heavy makeup, bare faced, chin-length short ash blonde bob, messy unkempt split ends, 1cm dark natural roots grown out, side-swept, no bangs, dusted with faint light brown cave dust, slim athletic toned build, 168cm height, defined lean arm muscle from climbing, subtle runner's leg definition, calloused fingertips from tool use, worn faded brown leather jacket, oversized charcoal grey hoodie under jacket, high-waisted fitted black cargo jeans with reinforced knees, scuffed dark brown steel-toe work boots, jacket sleeves rolled to elbows, heavy-duty LED flashlight clipped to jacket pocket, low-profile black hip holster on right hip, worn canvas utility belt with small trowel pouch, waterproof black digital watch on left wrist, small brass compass on leather cord around neck, fingerless black work gloves tucked in back pocket, moody cinematic realism, low cool damp cave lighting, contemporary Chinese tomb-raiding aesthetic, gritty lived-in practical styling, subtle dust and grime texturing, soft natural shadow casting, eerie underground atmospheric context, photo-realistic, no stylization, grounded cinematic live-action character design, high detail, realistic skin texture, natural anatomy, consistent face identity, straight-on portrait, neutral expression, chest-up, clean studio background, soft key light, character reference image"
+    },
+    {
+      "suffix": "three-quarter",
+      "prompt": "Lin Yue, pale cool-toned skin, sharp almond-shaped grey-green eyes, faint freckles across nose bridge, defined high cheekbones, small 1cm faint scar on left jaw, neutral focused resting expression, no heavy makeup, bare faced, chin-length short ash blonde bob, messy unkempt split ends, 1cm dark natural roots grown out, side-swept, no bangs, dusted with faint light brown cave dust, slim athletic toned build, 168cm height, defined lean arm muscle from climbing, subtle runner's leg definition, calloused fingertips from tool use, worn faded brown leather jacket, oversized charcoal grey hoodie under jacket, high-waisted fitted black cargo jeans with reinforced knees, scuffed dark brown steel-toe work boots, jacket sleeves rolled to elbows, heavy-duty LED flashlight clipped to jacket pocket, low-profile black hip holster on right hip, worn canvas utility belt with small trowel pouch, waterproof black digital watch on left wrist, small brass compass on leather cord around neck, fingerless black work gloves tucked in back pocket, moody cinematic realism, low cool damp cave lighting, contemporary Chinese tomb-raiding aesthetic, gritty lived-in practical styling, subtle dust and grime texturing, soft natural shadow casting, eerie underground atmospheric context, photo-realistic, no stylization, grounded cinematic live-action character design, high detail, realistic skin texture, natural anatomy, consistent face identity, three-quarter portrait, calm expression, chest-up, clean studio background, soft cinematic rim light, character reference image"
+    }
+  ],
+  "outputs": [
+    "/Users/lebo/project/ai-video/assets/characters/tomb-raider-female/reference/front.jpeg",
+    "/Users/lebo/project/ai-video/assets/characters/tomb-raider-female/reference/three-quarter.jpeg"
+  ],
+  "character_yaml": "/Users/lebo/project/ai-video/examples/characters/tomb-raider-female.yaml"
+}

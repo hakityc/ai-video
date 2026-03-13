@@ -1,0 +1,72 @@
+{
+  "10": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "replace-me.png"
+    }
+  },
+  "20": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "40",
+        1
+      ],
+      "text": "replace me"
+    }
+  },
+  "21": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "40",
+        1
+      ],
+      "text": "replace me"
+    }
+  },
+  "30": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": 42,
+      "steps": 30,
+      "cfg": 6,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 1,
+      "model": [
+        "40",
+        0
+      ],
+      "positive": [
+        "20",
+        0
+      ],
+      "negative": [
+        "21",
+        0
+      ],
+      "latent_image": [
+        "10",
+        0
+      ]
+    }
+  },
+  "40": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "replace-me.safetensors"
+    }
+  },
+  "50": {
+    "class_type": "SaveAnimatedWEBP",
+    "inputs": {
+      "filename_prefix": "replace me",
+      "images": [
+        "30",
+        0
+      ],
+      "fps": 16
+    }
+  }
+}
