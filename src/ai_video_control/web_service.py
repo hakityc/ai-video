@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from ai_video_control.healthcheck import run_health_checks
 from ai_video_control.io import make_relative_path, read_json, read_yaml, write_json, write_yaml
 from ai_video_control.model_registry import get_model_registry
 from ai_video_control.models import (
@@ -12,6 +13,21 @@ from ai_video_control.models import (
     ScenePack,
     ShotTemplate,
     VideoJob,
+)
+from ai_video_control.paths import (
+    ARTIFACTS_OUTPUT_DIR,
+    ARTIFACTS_VIDEO_DIR,
+    ASSETS_CHARACTERS_DIR,
+    CHARACTERS_DIR,
+    EPISODES_DIR,
+    EPISODE_NOTES_DIR,
+    JOBS_DIR,
+    PROPS_DIR,
+    REPO_ROOT,
+    SCENES_DIR,
+    SHOT_TEMPLATES_DIR,
+    STORIES_DIR,
+    WORKFLOWS_DIR,
 )
 from ai_video_control.providers.cogvideox import render_with_cogvideox
 from ai_video_control.providers.comfyui import render_with_comfyui
@@ -27,9 +43,11 @@ from ai_video_control.review import (
     review_master_scene_image,
     select_bridge_frame,
 )
+from ai_video_control.provider_runtime import get_provider_runtime_snapshot, resolve_openai_runtime
 from ai_video_control.settings import (
+    LOCKED_PROVIDER_DEFAULT_MODELS,
+    LOCKED_PROVIDER_ID,
     get_settings,
-    read_provider_settings,
     read_raw_settings,
     update_settings,
     update_provider_settings,
@@ -44,26 +62,9 @@ from ai_video_control.shortform import (
 )
 
 
-REPO_ROOT = Path.cwd().resolve()
-STRUCTURED_JSON_UNSUPPORTED_BIGMODEL_TEXT_MODELS = {
-    "glm-4.7",
-    "glm-4.7-flash",
-    "glm-4.6",
-    "glm-4.5",
-    "glm-4-5-air",
-    "glm-4-5-flash",
-    "glm-z1-air",
-    "glm-z1-flash",
-}
-STRUCTURED_JSON_BIGMODEL_REASON = (
-    "当前智谱 Coding 网关上的 GLM 文本模型不会稳定把最终 JSON 写入 content，"
-    "角色生成依赖结构化 JSON，暂不支持这组模型。请切换到火山方舟等支持结构化输出的文本模型。"
-)
-
-
 def get_app_state() -> dict[str, Any]:
     settings = read_raw_settings()
-    providers = read_provider_settings()
+    runtime = get_provider_runtime_snapshot()
     scripts = list_script_library()
     characters = list_characters()
     scenes = list_scenes()
@@ -75,8 +76,14 @@ def get_app_state() -> dict[str, Any]:
     qa = list_qa_entries()
     return {
         "settings": settings,
-        "providers": providers,
-        "catalog": build_model_catalog(settings),
+        "providers": {
+            "selected_provider_id": runtime["selected_provider_id"],
+            "providers": runtime["providers"],
+        },
+        "catalog": build_model_catalog(settings, runtime=runtime),
+        "provider_health_summary": runtime["provider_health_summary"],
+        "model_health_entries": runtime["model_health_entries"],
+        "effective_defaults": runtime["effective_defaults"],
         "capabilities": build_capabilities(),
         "generation": {
             "counts": {
@@ -103,19 +110,47 @@ def get_app_state() -> dict[str, Any]:
 
 
 def save_provider_connections(selected_provider_id: str, providers: list[dict[str, Any]]) -> dict[str, Any]:
-    return update_provider_settings(selected_provider_id, providers)
+    saved = update_provider_settings(selected_provider_id, providers)
+    health_report = run_health_checks()
+    return {
+        **saved,
+        "health_report": health_report,
+    }
 
 
 def refresh_model_catalog() -> dict[str, Any]:
-    return get_model_registry(force_refresh=True)
+    get_model_registry(force_refresh=True)
+    return run_health_checks()
 
 
-def build_model_catalog(settings: dict[str, str]) -> dict[str, Any]:
-    provider_state = read_provider_settings()
-    providers = provider_state.get("providers", [])
-    selected_provider_id = str(provider_state.get("selected_provider_id") or "").strip()
-    registry = get_model_registry()
-    provider_model_groups = registry.get("provider_model_groups", [])
+def build_model_catalog(settings: dict[str, str], runtime: dict[str, Any] | None = None) -> dict[str, Any]:
+    snapshot = runtime or get_provider_runtime_snapshot()
+    providers = [
+        provider
+        for provider in snapshot["providers"]
+        if provider.get("manual_enabled", provider.get("enabled", True))
+    ]
+    active_provider_ids = {provider["id"] for provider in providers}
+    provider_defaults = {provider["id"]: provider.get("default_models", {}) for provider in providers}
+    provider_model_groups = []
+    for group in snapshot["provider_model_groups"]:
+        if group["provider_id"] not in active_provider_ids:
+            continue
+        if group["provider_id"] == LOCKED_PROVIDER_ID:
+            defaults = provider_defaults.get(group["provider_id"], LOCKED_PROVIDER_DEFAULT_MODELS)
+            provider_model_groups.append(
+                {
+                    **group,
+                    "models": {
+                        "text": [defaults["text"]],
+                        "image": [defaults["image"]],
+                        "video": [defaults["video"]],
+                    },
+                    "total_models": 3,
+                }
+            )
+            continue
+        provider_model_groups.append(group)
     return {
         "text_models": _catalog_values(
             settings,
@@ -141,16 +176,14 @@ def build_model_catalog(settings: dict[str, str]) -> dict[str, Any]:
             *_provider_model_values(providers, "local_model"),
         ),
         "provider_model_groups": provider_model_groups,
-        "model_registry_updated_at": registry.get("updated_at", ""),
+        "model_registry_updated_at": get_model_registry().get("updated_at", ""),
         "task_constraints": {
             "character_generation": {
                 "blocked_text_models": _blocked_character_text_models(
-                    providers=providers,
-                    provider_model_groups=provider_model_groups,
-                    selected_provider_id=selected_provider_id,
-                    settings=settings,
+                    model_entries=snapshot["model_health_entries"],
                 ),
-            }
+            },
+            "healthy_model_entries": snapshot["model_health_entries"],
         },
         "job_providers": [
             {"id": "comfyui", "label": "ComfyUI"},
@@ -179,104 +212,39 @@ def _registry_model_values(provider_model_groups: list[dict[str, Any]], kind: st
     return values
 
 
-def _normalize_model_name(value: str | None) -> str:
-    return str(value or "").strip().lower().replace("_", "-")
-
-
-def _structured_json_block_reason(
-    provider_id: str | None,
-    base_url: str | None,
-    model: str | None,
-) -> str | None:
-    normalized_model = _normalize_model_name(model)
-    normalized_provider = str(provider_id or "").strip().lower()
-    normalized_base_url = str(base_url or "").strip().lower()
-    is_bigmodel_coding_gateway = "open.bigmodel.cn/api/coding/paas/v4" in normalized_base_url
-    if normalized_model in STRUCTURED_JSON_UNSUPPORTED_BIGMODEL_TEXT_MODELS and (
-        normalized_provider == "bigmodel" or is_bigmodel_coding_gateway
-    ):
-        return STRUCTURED_JSON_BIGMODEL_REASON
-    return None
-
-
 def _blocked_character_text_models(
     *,
-    providers: list[dict[str, Any]],
-    provider_model_groups: list[dict[str, Any]],
-    selected_provider_id: str,
-    settings: dict[str, str],
+    model_entries: list[dict[str, Any]],
 ) -> list[dict[str, str]]:
-    selected_provider = next((item for item in providers if item.get("id") == selected_provider_id), None)
-    provider_id = str(selected_provider.get("id") or selected_provider_id).strip() if selected_provider else selected_provider_id
-    base_url = (
-        str(selected_provider.get("base_url") or "").strip()
-        if selected_provider
-        else settings.get("OPENAI_BASE_URL", "")
-    )
-    current_model = settings.get("OPENAI_MODEL", "")
-    provider_group = next(
-        (item for item in provider_model_groups if str(item.get("provider_id") or "").strip() == provider_id),
-        None,
-    )
-    model_values = _unique_texts(
-        [
-            current_model,
-            str(selected_provider.get("text_model") or "").strip() if selected_provider else "",
-            *(
-                [str(item).strip() for item in provider_group.get("models", {}).get("text", [])]
-                if provider_group
-                else []
-            ),
-        ]
-    )
-    reason = next(
-        (
-            blocked_reason
-            for model in model_values
-            if (blocked_reason := _structured_json_block_reason(provider_id, base_url, model))
-        ),
-        None,
-    )
-    if not reason:
-        return []
-    return [{"model": model, "reason": reason} for model in model_values]
+    blocked = []
+    for entry in model_entries:
+        if entry["kind"] != "text":
+            continue
+        for ability_state in entry.get("ability_states", []):
+            if ability_state["ability"] != "character_text_json":
+                continue
+            if ability_state["status"] in {"unhealthy", "disabled_auto", "disabled_manual"}:
+                blocked.append(
+                    {
+                        "model": entry["model_id"],
+                        "reason": ability_state.get("reason") or "当前模型未通过角色结构化 JSON 健康检查。",
+                    }
+                )
+    return blocked
 
 
 def ensure_character_generation_text_model_supported(text_model: str | None = None) -> None:
-    settings = get_settings()
-    provider_state = read_provider_settings()
-    selected_provider_id = str(provider_state.get("selected_provider_id") or "").strip()
-    providers = provider_state.get("providers", [])
-    selected_provider = next((item for item in providers if item.get("id") == selected_provider_id), None)
-    requested_model = str(text_model or settings.openai_model or "").strip()
-    reason = _structured_json_block_reason(
-        provider_id=str(selected_provider.get("id") or selected_provider_id) if selected_provider else selected_provider_id,
-        base_url=str(selected_provider.get("base_url") or settings.openai_base_url or "")
-        if selected_provider
-        else settings.openai_base_url,
-        model=requested_model,
-    )
-    if reason:
-        raise ValueError(f"当前文本模型 `{requested_model}` 已禁用。{reason}")
+    resolve_openai_runtime("character_generation", text_model=text_model)
 
 
 def build_capabilities() -> dict[str, bool]:
+    snapshot = get_provider_runtime_snapshot()
+    effective_defaults = snapshot["effective_defaults"]
     settings = get_settings()
     return {
-        "can_generate_scripts": bool(settings.openai_base_url and settings.openai_api_key and settings.openai_model),
-        "can_generate_characters": bool(
-            settings.openai_base_url
-            and settings.openai_api_key
-            and settings.openai_model
-            and settings.openai_image_model
-        ),
-        "can_search_shortform": bool(
-            settings.openai_base_url
-            and settings.openai_api_key
-            and settings.openai_model
-            and settings.openai_image_model
-            and settings.openai_video_model
-        ),
+        "can_generate_scripts": bool(effective_defaults.get("script_generation")),
+        "can_generate_characters": bool(effective_defaults.get("character_generation")),
+        "can_search_shortform": bool(effective_defaults.get("shortform_generation")),
         "can_review": bool(settings.openai_base_url and settings.openai_api_key and settings.openai_model),
         "can_render_comfyui": bool(settings.comfyui_url),
         "can_render_cogvideox": True,
@@ -286,8 +254,8 @@ def build_capabilities() -> dict[str, bool]:
 def list_script_library() -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     mapping = [
-        ("story", REPO_ROOT / "docs" / "stories", "*.md"),
-        ("episode_note", REPO_ROOT / "docs" / "episodes", "*.md"),
+        ("story", STORIES_DIR, "*.md"),
+        ("episode_note", EPISODE_NOTES_DIR, "*.md"),
     ]
     for kind, root, pattern in mapping:
         for path in sorted(root.glob(pattern)):
@@ -305,11 +273,11 @@ def list_script_library() -> list[dict[str, Any]]:
 
 
 def list_characters() -> list[dict[str, Any]]:
-    root = REPO_ROOT / "examples" / "characters"
+    root = CHARACTERS_DIR
     items: list[dict[str, Any]] = []
     for path in sorted(root.glob("*.yaml")):
         data = CharacterBible.model_validate(read_yaml(path))
-        metadata_path = REPO_ROOT / "assets" / "characters" / data.slug / "generation.json"
+        metadata_path = ASSETS_CHARACTERS_DIR / data.slug / "generation.json"
         items.append(
             {
                 "slug": data.slug,
@@ -329,7 +297,7 @@ def list_characters() -> list[dict[str, Any]]:
 
 
 def list_scenes() -> list[dict[str, Any]]:
-    root = REPO_ROOT / "examples" / "scenes"
+    root = SCENES_DIR
     items: list[dict[str, Any]] = []
     for path in sorted(root.glob("*.yaml")):
         payload = read_yaml(path)
@@ -346,7 +314,7 @@ def list_scenes() -> list[dict[str, Any]]:
 
 
 def list_props() -> list[dict[str, Any]]:
-    root = REPO_ROOT / "examples" / "props"
+    root = PROPS_DIR
     items: list[dict[str, Any]] = []
     for path in sorted(root.glob("*.yaml")):
         payload = read_yaml(path)
@@ -363,7 +331,7 @@ def list_props() -> list[dict[str, Any]]:
 
 
 def list_shot_templates() -> list[dict[str, Any]]:
-    root = REPO_ROOT / "examples" / "shot-templates"
+    root = SHOT_TEMPLATES_DIR
     items: list[dict[str, Any]] = []
     for path in sorted(root.glob("*.yaml")):
         payload = read_yaml(path)
@@ -381,7 +349,7 @@ def list_shot_templates() -> list[dict[str, Any]]:
 
 
 def list_episode_specs() -> list[dict[str, Any]]:
-    root = REPO_ROOT / "examples" / "episodes"
+    root = EPISODES_DIR
     qa_lookup = _qa_lookup()
     items: list[dict[str, Any]] = []
     for path in sorted(root.glob("*.yaml")):
@@ -426,7 +394,7 @@ def list_episode_specs() -> list[dict[str, Any]]:
 
 
 def list_jobs() -> list[dict[str, Any]]:
-    root = REPO_ROOT / "examples" / "jobs"
+    root = JOBS_DIR
     items: list[dict[str, Any]] = []
     for path in sorted(root.glob("*.yaml")):
         job = VideoJob.model_validate(read_yaml(path))
@@ -462,7 +430,7 @@ def list_jobs() -> list[dict[str, Any]]:
 
 
 def list_outputs() -> list[dict[str, Any]]:
-    roots = [REPO_ROOT / "artifacts" / "video", REPO_ROOT / "artifacts" / "output"]
+    roots = [ARTIFACTS_VIDEO_DIR, ARTIFACTS_OUTPUT_DIR]
     items: list[dict[str, Any]] = []
     for root in roots:
         if not root.exists():
@@ -492,6 +460,40 @@ def save_settings(payload: dict[str, str]) -> dict[str, str]:
     return update_settings(payload)
 
 
+def _resolved_client(
+    task_name: str,
+    *,
+    provider_id: str | None = None,
+    text_model: str | None = None,
+    image_model: str | None = None,
+    video_model: str | None = None,
+) -> tuple[OpenAICompatClient, dict[str, Any]]:
+    resolved = resolve_openai_runtime(
+        task_name,
+        provider_id=provider_id,
+        text_model=text_model,
+        image_model=image_model,
+        video_model=video_model,
+    )
+    ability_map = {
+        "script_generation": ("script_text", None, None),
+        "storyboard_generation": ("script_text", None, None),
+        "character_generation": ("character_text_json", "character_image_generation", None),
+        "shortform_generation": ("script_text", "shortform_image_generation", "shortform_video_generation"),
+        "review_text": ("script_text", None, None),
+    }
+    text_ability, image_ability, video_ability = ability_map[task_name]
+    client = OpenAICompatClient(
+        resolved["settings"],
+        provider_id=resolved["provider_id"],
+        text_ability=text_ability,
+        image_ability=image_ability,
+        video_ability=video_ability,
+        health_source="runtime",
+    )
+    return client, resolved
+
+
 def generate_story_script(
     slug: str,
     title: str,
@@ -501,12 +503,9 @@ def generate_story_script(
     length_profile: str | None = None,
     seed_text: str = "",
 ) -> dict[str, Any]:
-    settings = get_settings()
-    if not settings.openai_model:
-        raise ValueError("OPENAI_MODEL is required before generating scripts.")
-    client = OpenAICompatClient(settings)
+    client, resolved = _resolved_client("script_generation", text_model=text_model)
     slug_value = slugify(slug or title)
-    output_path = REPO_ROOT / "docs" / "stories" / f"{slug_value}.md"
+    output_path = STORIES_DIR / f"{slug_value}.md"
     length_guide = _script_length_guide(length_profile)
     prompt = (
         "请用简体中文输出一个面向 AI 短视频生产的 markdown 文案。"
@@ -525,6 +524,8 @@ def generate_story_script(
     return {
         "path": repo_relative(output_path),
         "title": title,
+        "provider_id": resolved["provider_id"],
+        "text_model": resolved["models"].get("text"),
     }
 
 
@@ -536,11 +537,11 @@ def generate_character_assets(
     reference_preset: str = "standard",
     reference_image: str | None = None,
 ) -> dict[str, Any]:
-    settings = get_settings()
-    if not settings.openai_model or not settings.openai_image_model:
-        raise ValueError("OPENAI_MODEL and OPENAI_IMAGE_MODEL are required before generating characters.")
-
-    client = OpenAICompatClient(settings)
+    client, resolved = _resolved_client(
+        "character_generation",
+        text_model=text_model,
+        image_model=image_model,
+    )
     if reference_image:
         reference_path = resolve_repo_path(reference_image)
         brief = client.chat_json_with_content(
@@ -571,14 +572,14 @@ def generate_character_assets(
         negative_prompt = str(negative_prompt)
 
     slug_value = slugify(slug)
-    reference_dir = REPO_ROOT / "assets" / "characters" / slug_value / "reference"
+    reference_dir = ASSETS_CHARACTERS_DIR / slug_value / "reference"
     generated_paths = []
     for item in prompts:
         output_path = reference_dir / f"{slug_value}-{item['suffix']}.jpeg"
         client.generate_image(item["prompt"], output_path=output_path, model=image_model or None)
         generated_paths.append(output_path)
 
-    character_path = REPO_ROOT / "examples" / "characters" / f"{slug_value}.yaml"
+    character_path = CHARACTERS_DIR / f"{slug_value}.yaml"
     bible_payload = {
         "version": "1",
         "slug": slug_value,
@@ -623,6 +624,9 @@ def generate_character_assets(
         "slug": slug_value,
         "character_path": repo_relative(character_path),
         "reference_paths": [repo_relative(path) for path in generated_paths],
+        "provider_id": resolved["provider_id"],
+        "text_model": resolved["models"].get("text"),
+        "image_model": resolved["models"].get("image"),
     }
 
 
@@ -645,7 +649,7 @@ def create_video_job(
 
     character_file = resolve_repo_path(character_path)
     character = CharacterBible.model_validate(read_yaml(character_file))
-    output_path = REPO_ROOT / "examples" / "jobs" / f"{job_id}-{provider}.yaml"
+    output_path = JOBS_DIR / f"{job_id}-{provider}.yaml"
 
     selected_reference_paths: list[Path] = []
     for item in reference_images or []:
@@ -724,8 +728,8 @@ def create_video_job(
     }
 
     if provider == "comfyui":
-        workflow_path = REPO_ROOT / "examples" / "workflows" / "comfyui_i2v_template.json"
-        output_dir = REPO_ROOT / "artifacts" / "video" / "comfyui" / character.slug
+        workflow_path = WORKFLOWS_DIR / "comfyui_i2v_template.json"
+        output_dir = ARTIFACTS_VIDEO_DIR / "comfyui" / character.slug
         payload["comfyui"] = {
             "workflow_path": relative_from(output_path.parent, workflow_path),
             "output_dir": relative_from(output_path.parent, output_dir),
@@ -748,7 +752,7 @@ def create_video_job(
             "model_id": settings.cogvideox_model_id or "THUDM/CogVideoX-5b-I2V",
             "output_path": relative_from(
                 output_path.parent,
-                REPO_ROOT / "artifacts" / "video" / "cogvideox" / character.slug / f"{job_id}.mp4",
+                ARTIFACTS_VIDEO_DIR / "cogvideox" / character.slug / f"{job_id}.mp4",
             ),
             "torch_dtype": "bfloat16",
             "device": "auto",
@@ -920,17 +924,13 @@ def generate_storyboard_outline(
     text_model: str | None = None,
     shot_count: int = 4,
 ) -> dict[str, Any]:
-    settings = get_settings()
-    if not settings.openai_model:
-        raise ValueError("OPENAI_MODEL is required before generating storyboard notes.")
-
     character_file = resolve_repo_path(character_path)
     script_file = resolve_repo_path(script_path)
     character = CharacterBible.model_validate(read_yaml(character_file))
     script_content = script_file.read_text(encoding="utf-8")
     script_excerpt = _markdown_preview(script_content)
 
-    client = OpenAICompatClient(settings)
+    client, resolved = _resolved_client("storyboard_generation", text_model=text_model)
     try:
         structured = client.chat_json(
             (
@@ -991,6 +991,8 @@ def generate_storyboard_outline(
             str(item).strip() for item in structured.get("negative_prompt_hints", []) if str(item).strip()
         ],
         "shots": shots,
+        "provider_id": resolved["provider_id"],
+        "text_model": resolved["models"].get("text"),
     }
 
 
@@ -1209,19 +1211,28 @@ def search_shortform_candidates(
     duration: int | None = None,
     resolution: str | None = None,
 ) -> dict[str, Any]:
-    settings = get_settings()
+    resolved = resolve_openai_runtime(
+        "shortform_generation",
+        image_model=image_model,
+        video_model=video_model,
+    )
     spec_file = resolve_repo_path(spec_path)
     bundle = load_shortform_bundle(spec_file)
-    return search_keyframe_candidates(
+    result = search_keyframe_candidates(
         bundle=bundle,
-        settings=settings,
+        settings=resolved["settings"],
         output_root=REPO_ROOT / "artifacts" / "video" / "seedance",
-        image_model=image_model or settings.openai_image_model or None,
-        video_model=video_model or settings.openai_video_model or "doubao-seedance-1-5-pro-251215",
-        ratio=ratio or settings.openai_video_ratio or "16:9",
-        duration=duration or int(settings.openai_video_duration or "5"),
-        resolution=resolution or settings.openai_video_resolution or "720p",
+        image_model=resolved["models"].get("image"),
+        video_model=resolved["models"].get("video") or "doubao-seedance-1-5-pro-251215",
+        ratio=ratio or resolved["settings"].openai_video_ratio or "16:9",
+        duration=duration or int(resolved["settings"].openai_video_duration or "5"),
+        resolution=resolution or resolved["settings"].openai_video_resolution or "720p",
     )
+    result["provider_id"] = resolved["provider_id"]
+    result["text_model"] = resolved["models"].get("text")
+    result["image_model"] = resolved["models"].get("image")
+    result["video_model"] = resolved["models"].get("video")
+    return result
 
 
 def render_shortform(
@@ -1232,19 +1243,28 @@ def render_shortform(
     duration: int | None = None,
     resolution: str | None = None,
 ) -> dict[str, Any]:
-    settings = get_settings()
+    resolved = resolve_openai_runtime(
+        "shortform_generation",
+        image_model=image_model,
+        video_model=video_model,
+    )
     spec_file = resolve_repo_path(spec_path)
     bundle = load_shortform_bundle(spec_file)
-    return render_shortform_episode(
+    result = render_shortform_episode(
         bundle=bundle,
-        settings=settings,
+        settings=resolved["settings"],
         output_root=REPO_ROOT / "artifacts" / "video" / "seedance",
-        image_model=image_model or settings.openai_image_model or None,
-        video_model=video_model or settings.openai_video_model or "doubao-seedance-1-5-pro-251215",
-        ratio=ratio or settings.openai_video_ratio or "16:9",
-        duration=duration or int(settings.openai_video_duration or "5"),
-        resolution=resolution or settings.openai_video_resolution or "720p",
+        image_model=resolved["models"].get("image"),
+        video_model=resolved["models"].get("video") or "doubao-seedance-1-5-pro-251215",
+        ratio=ratio or resolved["settings"].openai_video_ratio or "16:9",
+        duration=duration or int(resolved["settings"].openai_video_duration or "5"),
+        resolution=resolution or resolved["settings"].openai_video_resolution or "720p",
     )
+    result["provider_id"] = resolved["provider_id"]
+    result["text_model"] = resolved["models"].get("text")
+    result["image_model"] = resolved["models"].get("image")
+    result["video_model"] = resolved["models"].get("video")
+    return result
 
 
 def run_episode_review(episode_dir: str, context: str = "") -> dict[str, Any]:
@@ -1405,7 +1425,7 @@ def _script_length_guide(length_profile: str | None) -> str:
 
 def _qa_lookup() -> dict[str, dict[str, Any]]:
     result: dict[str, dict[str, Any]] = {}
-    root = REPO_ROOT / "artifacts" / "video"
+    root = ARTIFACTS_VIDEO_DIR
     if not root.exists():
         return result
 

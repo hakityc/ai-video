@@ -542,7 +542,14 @@ def search_keyframe_candidates(
     duration: int = 5,
     resolution: str = "720p",
 ) -> Dict[str, Any]:
-    client = OpenAICompatClient(settings)
+    client = OpenAICompatClient(
+        settings,
+        provider_id=settings.active_provider_id,
+        text_ability="script_text",
+        image_ability="shortform_image_generation",
+        video_ability="shortform_video_generation",
+        health_source="runtime",
+    )
     episode_dir = _candidate_dir(bundle, output_root)
     episode_dir.mkdir(parents=True, exist_ok=True)
     search_summary_path = episode_dir / "search_summary.json"
@@ -822,7 +829,14 @@ def render_shortform_episode(
     if search_summary.get("status") != "ok":
         raise RuntimeError("No gate-passing keyframe candidates were found")
 
-    client = OpenAICompatClient(settings)
+    client = OpenAICompatClient(
+        settings,
+        provider_id=settings.active_provider_id,
+        text_ability="script_text",
+        image_ability="shortform_image_generation",
+        video_ability="shortform_video_generation",
+        health_source="runtime",
+    )
     episode_dir = _candidate_dir(bundle, output_root)
     selected_master = search_summary["master_scene"]["selected"]
     manifest: Dict[str, Any] = {

@@ -1,0 +1,94 @@
+{
+  "concept": "\u4e8c\u5341\u591a\u5c81\u4e1c\u4e9a\u5973\u6027\uff0c\u591c\u73ed\u4fbf\u5229\u5e97\u5e97\u5458\uff0c\u9ed1\u8272\u77ed\u53d1\uff0c\u7565\u663e\u75b2\u60eb\u4f46\u8b66\u89c9\uff0c\u6df1\u8272\u5de5\u670d\u5916\u5957\uff0c\u80f8\u724c\u548c\u5de5\u4f5c\u8170\u5305\u56fa\u5b9a\uff0c\u73b0\u5b9e\u7535\u5f71\u611f\u3002",
+  "brief": {
+    "name": "Lin Xiao",
+    "age_range": "22-26",
+    "face": [
+      "Han Chinese East Asian facial structure",
+      "almond-shaped dark brown eyes",
+      "faint dark under-eye circles",
+      "straight petite nose",
+      "light olive skin tone",
+      "subtle furrow between brows",
+      "no heavy makeup",
+      "faint freckles across nose bridge"
+    ],
+    "hair": [
+      "jet black neck-length choppy bob",
+      "no bangs",
+      "slightly greasy from long shift",
+      "loose baby hairs framing forehead",
+      "no hair accessories"
+    ],
+    "body": [
+      "162cm height",
+      "average slightly soft build",
+      "slouched posture from long standing",
+      "calloused index and middle fingertips",
+      "slim rounded shoulders",
+      "natural untoned limbs"
+    ],
+    "outfit": [
+      "oversized dark navy blue convenience store work jacket",
+      "jacket unzipped 1/3 down the front",
+      "plain white cotton crew neck undershirt",
+      "dark gray straight-leg work pants",
+      "scuffed white non-slip rubber sneakers",
+      "jacket cuffs rolled up to forearms"
+    ],
+    "accessories": [
+      "clear plastic rectangular name badge clipped to left jacket lapel, printed with 'Lin Xiao' white text on blue background",
+      "black heavy-duty canvas work fanny pack worn snug around waist",
+      "thin silver band ring on right index finger",
+      "wired white earbuds tucked into jacket pocket with cord hanging out"
+    ],
+    "style_descriptors": [
+      "hyperrealistic cinematic still",
+      "35mm film grain texture",
+      "warm dim fluorescent convenience store lighting",
+      "natural unpolished everyday appearance",
+      "tired but alert microexpression",
+      "grounded working class character aesthetic",
+      "night shift ambient lighting context"
+    ],
+    "color_palette": [
+      "#1A365D",
+      "#212121",
+      "#F8F9FA",
+      "#D4A373",
+      "#333333"
+    ],
+    "negative_prompt": [
+      "cartoon, anime, illustration, 2D art, CGI",
+      "over-saturated colors, high contrast filter",
+      "heavy makeup, glamorous styling",
+      "long hair, dyed hair, hair accessories",
+      "formal wear, fashionable clothing, visible brand logos",
+      "perfect flawless skin, exaggerated body proportions",
+      "smiling expression, overly energetic demeanor",
+      "bright daylight, studio lighting, plain studio backdrop",
+      "distorted limbs, extra fingers, blurry facial features"
+    ]
+  },
+  "reference_preset": "standard",
+  "reference_image": null,
+  "image_prompts": [
+    {
+      "suffix": "front",
+      "view": "front",
+      "expression": "neutral",
+      "prompt": "Lin Xiao, Han Chinese East Asian facial structure, almond-shaped dark brown eyes, faint dark under-eye circles, straight petite nose, light olive skin tone, subtle furrow between brows, no heavy makeup, faint freckles across nose bridge, jet black neck-length choppy bob, no bangs, slightly greasy from long shift, loose baby hairs framing forehead, no hair accessories, 162cm height, average slightly soft build, slouched posture from long standing, calloused index and middle fingertips, slim rounded shoulders, natural untoned limbs, oversized dark navy blue convenience store work jacket, jacket unzipped 1/3 down the front, plain white cotton crew neck undershirt, dark gray straight-leg work pants, scuffed white non-slip rubber sneakers, jacket cuffs rolled up to forearms, clear plastic rectangular name badge clipped to left jacket lapel, printed with 'Lin Xiao' white text on blue background, black heavy-duty canvas work fanny pack worn snug around waist, thin silver band ring on right index finger, wired white earbuds tucked into jacket pocket with cord hanging out, hyperrealistic cinematic still, 35mm film grain texture, warm dim fluorescent convenience store lighting, natural unpolished everyday appearance, tired but alert microexpression, grounded working class character aesthetic, night shift ambient lighting context, grounded cinematic live-action character design, high detail, realistic skin texture, natural anatomy, consistent face identity, straight-on portrait, neutral expression, chest-up, clean studio background, soft key light, character reference image"
+    },
+    {
+      "suffix": "three-quarter",
+      "view": "three-quarter",
+      "expression": "calm",
+      "prompt": "Lin Xiao, Han Chinese East Asian facial structure, almond-shaped dark brown eyes, faint dark under-eye circles, straight petite nose, light olive skin tone, subtle furrow between brows, no heavy makeup, faint freckles across nose bridge, jet black neck-length choppy bob, no bangs, slightly greasy from long shift, loose baby hairs framing forehead, no hair accessories, 162cm height, average slightly soft build, slouched posture from long standing, calloused index and middle fingertips, slim rounded shoulders, natural untoned limbs, oversized dark navy blue convenience store work jacket, jacket unzipped 1/3 down the front, plain white cotton crew neck undershirt, dark gray straight-leg work pants, scuffed white non-slip rubber sneakers, jacket cuffs rolled up to forearms, clear plastic rectangular name badge clipped to left jacket lapel, printed with 'Lin Xiao' white text on blue background, black heavy-duty canvas work fanny pack worn snug around waist, thin silver band ring on right index finger, wired white earbuds tucked into jacket pocket with cord hanging out, hyperrealistic cinematic still, 35mm film grain texture, warm dim fluorescent convenience store lighting, natural unpolished everyday appearance, tired but alert microexpression, grounded working class character aesthetic, night shift ambient lighting context, grounded cinematic live-action character design, high detail, realistic skin texture, natural anatomy, consistent face identity, three-quarter portrait, calm expression, chest-up, clean studio background, soft cinematic rim light, character reference image"
+    }
+  ],
+  "outputs": [
+    "assets/characters/smoke-volc-character/reference/smoke-volc-character-front.jpeg",
+    "assets/characters/smoke-volc-character/reference/smoke-volc-character-three-quarter.jpeg"
+  ],
+  "character_yaml": "examples/characters/smoke-volc-character.yaml"
+}

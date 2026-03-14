@@ -31,6 +31,14 @@ KNOWN_SETTINGS_KEYS = [
     "ACTIVE_PROVIDER_ID",
 ]
 
+LOCKED_PROVIDER_ID = "volcengine-ark"
+LOCKED_PROVIDER_DEFAULT_MODELS = {
+    "text": "doubao-seed-2-0-pro-260215",
+    "image": "doubao-seedream-3-0-t2i-250415",
+    "video": "doubao-seedance-1-5-pro-251215",
+    "local": "",
+}
+
 
 class Settings(BaseModel):
     openai_base_url: Optional[str] = None
@@ -159,10 +167,7 @@ def read_provider_settings() -> dict[str, Any]:
     providers = _parse_provider_list(raw.get("PROVIDER_CONNECTIONS_JSON", ""))
     if not providers:
         providers = _default_provider_list(raw)
-
-    selected_provider_id = raw.get("ACTIVE_PROVIDER_ID", "").strip()
-    if not selected_provider_id or not any(item["id"] == selected_provider_id for item in providers):
-        selected_provider_id = next((item["id"] for item in providers if item.get("enabled")), providers[0]["id"])
+    providers, selected_provider_id = _enforce_locked_provider_mode(providers, raw)
 
     return {
         "selected_provider_id": selected_provider_id,
@@ -174,36 +179,19 @@ def update_provider_settings(selected_provider_id: str, providers: list[dict[str
     normalized = [_normalize_provider(item) for item in providers if item.get("name") or item.get("id")]
     if not normalized:
         normalized = _default_provider_list(read_raw_settings())
-
-    selected = next((item for item in normalized if item["id"] == selected_provider_id), None)
-    if selected is None:
-        selected = next((item for item in normalized if item.get("enabled")), normalized[0])
-        selected_provider_id = selected["id"]
-
-    first_comfyui = next(
-        (item for item in normalized if item["provider_type"] == "comfyui" and item.get("enabled")),
-        None,
-    )
-    first_cogvideox = next(
-        (item for item in normalized if item["provider_type"] == "cogvideox" and item.get("enabled")),
-        None,
-    )
+    raw = read_raw_settings()
+    normalized, selected_provider_id = _enforce_locked_provider_mode(normalized, raw)
+    selected = next((item for item in normalized if item["id"] == selected_provider_id), normalized[0])
 
     saved = update_settings(
         {
             "PROVIDER_CONNECTIONS_JSON": json.dumps(normalized, ensure_ascii=False),
             "ACTIVE_PROVIDER_ID": selected_provider_id,
-            "OPENAI_BASE_URL": selected.get("base_url", "")
-            if selected["provider_type"] in {"openai-compatible", "custom"}
-            else "",
-            "OPENAI_API_KEY": selected.get("api_key", "")
-            if selected["provider_type"] in {"openai-compatible", "custom"}
-            else "",
-            "OPENAI_MODEL": selected.get("text_model", ""),
-            "OPENAI_IMAGE_MODEL": selected.get("image_model", ""),
-            "OPENAI_VIDEO_MODEL": selected.get("video_model", ""),
-            "COMFYUI_URL": first_comfyui.get("base_url", "") if first_comfyui else "",
-            "COGVIDEOX_MODEL_ID": first_cogvideox.get("local_model", "") if first_cogvideox else "",
+            "OPENAI_BASE_URL": selected.get("base_url", ""),
+            "OPENAI_API_KEY": selected.get("api_key", ""),
+            "OPENAI_MODEL": selected.get("default_models", {}).get("text", ""),
+            "OPENAI_IMAGE_MODEL": selected.get("default_models", {}).get("image", ""),
+            "OPENAI_VIDEO_MODEL": selected.get("default_models", {}).get("video", ""),
         }
     )
 
@@ -282,12 +270,15 @@ def _default_provider_list(raw: dict[str, str]) -> list[dict[str, Any]]:
                 "id": "volcengine-ark",
                 "name": "火山方舟",
                 "provider_type": "openai-compatible",
-                "enabled": bool(raw.get("OPENAI_BASE_URL")),
+                "manual_enabled": bool(raw.get("OPENAI_BASE_URL")),
                 "base_url": raw.get("OPENAI_BASE_URL", "https://ark.cn-beijing.volces.com/api/v3"),
                 "api_key": raw.get("OPENAI_API_KEY", ""),
-                "text_model": raw.get("OPENAI_MODEL", ""),
-                "image_model": raw.get("OPENAI_IMAGE_MODEL", ""),
-                "video_model": raw.get("OPENAI_VIDEO_MODEL", ""),
+                "default_models": {
+                    "text": raw.get("OPENAI_MODEL", LOCKED_PROVIDER_DEFAULT_MODELS["text"]),
+                    "image": raw.get("OPENAI_IMAGE_MODEL", LOCKED_PROVIDER_DEFAULT_MODELS["image"]),
+                    "video": raw.get("OPENAI_VIDEO_MODEL", LOCKED_PROVIDER_DEFAULT_MODELS["video"]),
+                    "local": "",
+                },
                 "note": "适合统一接入文案、角色和视频模型。",
             }
         ),
@@ -296,7 +287,7 @@ def _default_provider_list(raw: dict[str, str]) -> list[dict[str, Any]]:
                 "id": "siliconflow",
                 "name": "硅基流动",
                 "provider_type": "openai-compatible",
-                "enabled": False,
+                "manual_enabled": False,
                 "base_url": "https://api.siliconflow.cn/v1",
                 "note": "适合补充模型来源和成本控制。",
             }
@@ -306,7 +297,7 @@ def _default_provider_list(raw: dict[str, str]) -> list[dict[str, Any]]:
                 "id": "openai-compatible",
                 "name": "OpenAI 兼容",
                 "provider_type": "openai-compatible",
-                "enabled": False,
+                "manual_enabled": False,
                 "base_url": "https://api.openai.com/v1",
                 "note": "适合任意兼容 OpenAI 协议的平台。",
             }
@@ -316,10 +307,14 @@ def _default_provider_list(raw: dict[str, str]) -> list[dict[str, Any]]:
                 "id": "zynkapi",
                 "name": "Zynk API",
                 "provider_type": "openai-compatible",
-                "enabled": False,
+                "manual_enabled": False,
                 "base_url": "https://zynkapi.com/v1",
-                "text_model": "deepseek-v3.1",
-                "image_model": "gpt-image-1",
+                "default_models": {
+                    "text": "deepseek-chat",
+                    "image": "dall-e-3",
+                    "video": "",
+                    "local": "",
+                },
                 "note": "官方公开为 OpenAI 兼容入口，适合统一接文本和图片模型。",
             }
         ),
@@ -328,10 +323,15 @@ def _default_provider_list(raw: dict[str, str]) -> list[dict[str, Any]]:
                 "id": "bigmodel",
                 "name": "智谱开放平台",
                 "provider_type": "openai-compatible",
-                "enabled": False,
-                "base_url": "https://open.bigmodel.cn/api/coding/paas/v4",
-                "text_model": "GLM-4.7",
-                "note": "按 Coding 网关预置文本模型；如果要用图像或视频，请切换到通用 /api/paas/v4 网关。",
+                "manual_enabled": False,
+                "base_url": "https://open.bigmodel.cn/api/paas/v4",
+                "default_models": {
+                    "text": "glm-4-flash",
+                    "image": "",
+                    "video": "",
+                    "local": "",
+                },
+                "note": "智谱通用 API 网关入口。",
             }
         ),
         _normalize_provider(
@@ -339,7 +339,7 @@ def _default_provider_list(raw: dict[str, str]) -> list[dict[str, Any]]:
                 "id": "comfyui-local",
                 "name": "ComfyUI",
                 "provider_type": "comfyui",
-                "enabled": bool(raw.get("COMFYUI_URL")),
+                "manual_enabled": bool(raw.get("COMFYUI_URL")),
                 "base_url": raw.get("COMFYUI_URL", "http://127.0.0.1:8188"),
                 "note": "本地工作流渲染服务。",
             }
@@ -349,8 +349,13 @@ def _default_provider_list(raw: dict[str, str]) -> list[dict[str, Any]]:
                 "id": "cogvideox-local",
                 "name": "CogVideoX",
                 "provider_type": "cogvideox",
-                "enabled": bool(raw.get("COGVIDEOX_MODEL_ID")) or not raw.get("PROVIDER_CONNECTIONS_JSON"),
-                "local_model": raw.get("COGVIDEOX_MODEL_ID", "THUDM/CogVideoX-5b-I2V"),
+                "manual_enabled": bool(raw.get("COGVIDEOX_MODEL_ID")) or not raw.get("PROVIDER_CONNECTIONS_JSON"),
+                "default_models": {
+                    "text": "",
+                    "image": "",
+                    "video": "",
+                    "local": raw.get("COGVIDEOX_MODEL_ID", "THUDM/CogVideoX-5b-I2V"),
+                },
                 "note": "本地视频生成模型。",
             }
         ),
@@ -360,20 +365,81 @@ def _default_provider_list(raw: dict[str, str]) -> list[dict[str, Any]]:
 def _normalize_provider(payload: dict[str, Any]) -> dict[str, Any]:
     provider_type = str(payload.get("provider_type") or "custom").strip() or "custom"
     provider_id = str(payload.get("id") or payload.get("name") or "custom-provider").strip()
+    default_models = payload.get("default_models")
+    if not isinstance(default_models, dict):
+        default_models = {}
+    text_model = str(payload.get("text_model") or default_models.get("text") or "").strip()
+    image_model = str(payload.get("image_model") or default_models.get("image") or "").strip()
+    video_model = str(payload.get("video_model") or default_models.get("video") or "").strip()
+    local_model = str(payload.get("local_model") or default_models.get("local") or "").strip()
+    manual_enabled = bool(payload.get("manual_enabled", payload.get("enabled", True)))
     return {
         "id": provider_id,
         "name": str(payload.get("name") or provider_id).strip(),
         "provider_type": provider_type,
-        "enabled": bool(payload.get("enabled", True)),
+        "manual_enabled": manual_enabled,
+        "enabled": manual_enabled,
         "base_url": str(payload.get("base_url") or "").strip(),
         "api_key": str(payload.get("api_key") or "").strip(),
-        "text_model": str(payload.get("text_model") or "").strip(),
-        "image_model": str(payload.get("image_model") or "").strip(),
-        "video_model": str(payload.get("video_model") or "").strip(),
-        "local_model": str(payload.get("local_model") or "").strip(),
+        "default_models": {
+            "text": text_model,
+            "image": image_model,
+            "video": video_model,
+            "local": local_model,
+        },
+        "text_model": text_model,
+        "image_model": image_model,
+        "video_model": video_model,
+        "local_model": local_model,
         "extra_config": str(payload.get("extra_config") or "").strip(),
         "note": str(payload.get("note") or "").strip(),
     }
+
+
+def _enforce_locked_provider_mode(
+    providers: list[dict[str, Any]],
+    raw: dict[str, str],
+) -> tuple[list[dict[str, Any]], str]:
+    normalized = [_normalize_provider(item) for item in providers]
+    provider_by_id = {item["id"]: item for item in normalized}
+    locked = provider_by_id.get(LOCKED_PROVIDER_ID)
+    if locked is None:
+        locked = _normalize_provider(
+            {
+                "id": LOCKED_PROVIDER_ID,
+                "name": "火山方舟",
+                "provider_type": "openai-compatible",
+                "manual_enabled": True,
+                "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+                "api_key": raw.get("OPENAI_API_KEY", ""),
+                "default_models": LOCKED_PROVIDER_DEFAULT_MODELS,
+                "note": "单 provider 生产模式下的唯一默认入口。",
+            }
+        )
+        normalized.append(locked)
+        provider_by_id[LOCKED_PROVIDER_ID] = locked
+
+    locked["manual_enabled"] = True
+    locked["enabled"] = True
+    if not str(locked.get("base_url") or "").strip():
+        locked["base_url"] = "https://ark.cn-beijing.volces.com/api/v3"
+    defaults = dict(locked.get("default_models") or {})
+    defaults["text"] = LOCKED_PROVIDER_DEFAULT_MODELS["text"]
+    defaults["image"] = LOCKED_PROVIDER_DEFAULT_MODELS["image"]
+    defaults["video"] = LOCKED_PROVIDER_DEFAULT_MODELS["video"]
+    defaults["local"] = defaults.get("local", "")
+    locked["default_models"] = defaults
+    locked["text_model"] = defaults["text"]
+    locked["image_model"] = defaults["image"]
+    locked["video_model"] = defaults["video"]
+
+    for provider in normalized:
+        if provider["id"] == LOCKED_PROVIDER_ID:
+            continue
+        provider["manual_enabled"] = False
+        provider["enabled"] = False
+
+    return normalized, LOCKED_PROVIDER_ID
 
 
 def _escape_env_value(value: str) -> str:

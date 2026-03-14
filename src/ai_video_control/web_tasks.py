@@ -1,17 +1,13 @@
 from __future__ import annotations
 
-import json
 import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any, Callable
 
 from ai_video_control.storage import get_task_record, list_task_records, upsert_task_record
 
-REPO_ROOT = Path.cwd().resolve()
-TASK_DIR = REPO_ROOT / "artifacts" / "web" / "tasks"
 EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="aivideo-web")
 
 
@@ -65,14 +61,8 @@ def _run_task(task_id: str, fn: Callable[[], Any]) -> None:
     _write_task(task_id, payload)
 
 
-def _task_path(task_id: str) -> Path:
-    TASK_DIR.mkdir(parents=True, exist_ok=True)
-    return TASK_DIR / f"{task_id}.json"
-
-
 def _write_task(task_id: str, payload: dict[str, Any]) -> None:
     upsert_task_record(payload)
-    _task_path(task_id).write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
 def _now() -> str:
@@ -80,8 +70,17 @@ def _now() -> str:
 
 
 def _migrate_legacy_tasks_if_needed() -> None:
+    """One-time migration: import any old JSON task files into the database."""
     if list_task_records(1):
         return
-    TASK_DIR.mkdir(parents=True, exist_ok=True)
-    for path in sorted(TASK_DIR.glob("*.json")):
-        upsert_task_record(json.loads(path.read_text(encoding="utf-8")))
+    import json
+    from pathlib import Path
+    from ai_video_control.paths import DB_DIR
+    task_dir = DB_DIR / "tasks"
+    if not task_dir.exists():
+        return
+    for path in sorted(task_dir.glob("*.json")):
+        try:
+            upsert_task_record(json.loads(path.read_text(encoding="utf-8")))
+        except Exception:  # noqa: BLE001
+            pass

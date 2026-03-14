@@ -6,7 +6,7 @@ import subprocess
 import urllib.error
 import urllib.request
 from copy import deepcopy
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from ai_video_control.storage import read_cache_entry, upsert_cache_value
@@ -319,7 +319,7 @@ def _unique_non_empty(values: list[str]) -> list[str]:
 
 
 def _iso_now() -> str:
-    return datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
+    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
 _STATIC_PROVIDER_MODEL_GROUPS: list[dict[str, Any]] = [

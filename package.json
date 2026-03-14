@@ -2,9 +2,13 @@
   "name": "ai-video-control-plane",
   "private": true,
   "scripts": {
-    "dev": "sh ./scripts/dev-server.sh",
-    "start": "sh ./scripts/dev-server.sh",
-    "stop": "sh ./scripts/stop-dev-server.sh",
-    "restart": "sh ./scripts/stop-dev-server.sh && sh ./scripts/dev-server.sh"
-  }
+    "dev": "bash ./scripts/dev-server.sh",
+    "start": "bash ./scripts/dev-server.sh",
+    "stop": "bash ./scripts/stop-dev-server.sh",
+    "restart": "bash ./scripts/stop-dev-server.sh && bash ./scripts/dev-server.sh"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
 }

@@ -5,10 +5,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
-
-REPO_ROOT = Path.cwd().resolve()
-DB_DIR = REPO_ROOT / "artifacts" / "web"
-DB_PATH = DB_DIR / "control-plane.db"
+from ai_video_control.paths import DB_DIR, DB_PATH
 
 
 def ensure_database() -> None:
@@ -38,6 +35,59 @@ def ensure_database() -> None:
                 key TEXT PRIMARY KEY,
                 value TEXT NOT NULL,
                 updated_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS provider_health_states (
+                provider_id TEXT PRIMARY KEY,
+                status TEXT NOT NULL,
+                last_checked_at TEXT,
+                last_healthy_at TEXT,
+                consecutive_failures INTEGER NOT NULL DEFAULT 0,
+                reason TEXT,
+                details_json TEXT,
+                updated_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS model_health_states (
+                provider_id TEXT NOT NULL,
+                model_id TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                ability TEXT NOT NULL,
+                status TEXT NOT NULL,
+                error_class TEXT,
+                error_code TEXT,
+                consecutive_failures INTEGER NOT NULL DEFAULT 0,
+                last_checked_at TEXT,
+                last_healthy_at TEXT,
+                reason TEXT,
+                details_json TEXT,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (provider_id, model_id, kind, ability)
+            );
+
+            CREATE TABLE IF NOT EXISTS health_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                created_at TEXT NOT NULL,
+                source TEXT NOT NULL,
+                provider_id TEXT,
+                model_id TEXT,
+                kind TEXT,
+                ability TEXT,
+                status TEXT NOT NULL,
+                error_class TEXT,
+                error_code TEXT,
+                message TEXT,
+                details_json TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS provider_model_policies (
+                provider_id TEXT NOT NULL,
+                model_id TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                manual_enabled INTEGER NOT NULL DEFAULT 1,
+                supported_abilities_json TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (provider_id, model_id, kind)
             );
             """
         )
@@ -112,6 +162,212 @@ def upsert_cache_value(key: str, value: str) -> None:
                 updated_at=datetime('now')
             """,
             (key, value),
+        )
+        connection.commit()
+
+
+def list_provider_health_states() -> list[dict[str, Any]]:
+    ensure_database()
+    with _connect() as connection:
+        rows = connection.execute(
+            """
+            SELECT provider_id, status, last_checked_at, last_healthy_at,
+                   consecutive_failures, reason, details_json, updated_at
+            FROM provider_health_states
+            ORDER BY provider_id ASC
+            """
+        ).fetchall()
+    return [
+        {
+            "provider_id": row["provider_id"],
+            "status": row["status"],
+            "last_checked_at": row["last_checked_at"],
+            "last_healthy_at": row["last_healthy_at"],
+            "consecutive_failures": row["consecutive_failures"],
+            "reason": row["reason"],
+            "details": json.loads(row["details_json"]) if row["details_json"] else None,
+            "updated_at": row["updated_at"],
+        }
+        for row in rows
+    ]
+
+
+def upsert_provider_health_state(payload: dict[str, Any]) -> None:
+    ensure_database()
+    with _connect() as connection:
+        connection.execute(
+            """
+            INSERT INTO provider_health_states (
+                provider_id, status, last_checked_at, last_healthy_at,
+                consecutive_failures, reason, details_json, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            ON CONFLICT(provider_id) DO UPDATE SET
+                status=excluded.status,
+                last_checked_at=excluded.last_checked_at,
+                last_healthy_at=excluded.last_healthy_at,
+                consecutive_failures=excluded.consecutive_failures,
+                reason=excluded.reason,
+                details_json=excluded.details_json,
+                updated_at=datetime('now')
+            """,
+            (
+                payload["provider_id"],
+                payload["status"],
+                payload.get("last_checked_at"),
+                payload.get("last_healthy_at"),
+                int(payload.get("consecutive_failures") or 0),
+                payload.get("reason"),
+                json.dumps(payload.get("details")) if payload.get("details") is not None else None,
+            ),
+        )
+        connection.commit()
+
+
+def list_model_health_states() -> list[dict[str, Any]]:
+    ensure_database()
+    with _connect() as connection:
+        rows = connection.execute(
+            """
+            SELECT provider_id, model_id, kind, ability, status,
+                   error_class, error_code, consecutive_failures,
+                   last_checked_at, last_healthy_at, reason, details_json, updated_at
+            FROM model_health_states
+            ORDER BY provider_id ASC, kind ASC, model_id ASC, ability ASC
+            """
+        ).fetchall()
+    return [
+        {
+            "provider_id": row["provider_id"],
+            "model_id": row["model_id"],
+            "kind": row["kind"],
+            "ability": row["ability"],
+            "status": row["status"],
+            "error_class": row["error_class"],
+            "error_code": row["error_code"],
+            "consecutive_failures": row["consecutive_failures"],
+            "last_checked_at": row["last_checked_at"],
+            "last_healthy_at": row["last_healthy_at"],
+            "reason": row["reason"],
+            "details": json.loads(row["details_json"]) if row["details_json"] else None,
+            "updated_at": row["updated_at"],
+        }
+        for row in rows
+    ]
+
+
+def upsert_model_health_state(payload: dict[str, Any]) -> None:
+    ensure_database()
+    with _connect() as connection:
+        connection.execute(
+            """
+            INSERT INTO model_health_states (
+                provider_id, model_id, kind, ability, status,
+                error_class, error_code, consecutive_failures,
+                last_checked_at, last_healthy_at, reason, details_json, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            ON CONFLICT(provider_id, model_id, kind, ability) DO UPDATE SET
+                status=excluded.status,
+                error_class=excluded.error_class,
+                error_code=excluded.error_code,
+                consecutive_failures=excluded.consecutive_failures,
+                last_checked_at=excluded.last_checked_at,
+                last_healthy_at=excluded.last_healthy_at,
+                reason=excluded.reason,
+                details_json=excluded.details_json,
+                updated_at=datetime('now')
+            """,
+            (
+                payload["provider_id"],
+                payload["model_id"],
+                payload["kind"],
+                payload["ability"],
+                payload["status"],
+                payload.get("error_class"),
+                payload.get("error_code"),
+                int(payload.get("consecutive_failures") or 0),
+                payload.get("last_checked_at"),
+                payload.get("last_healthy_at"),
+                payload.get("reason"),
+                json.dumps(payload.get("details")) if payload.get("details") is not None else None,
+            ),
+        )
+        connection.commit()
+
+
+def append_health_event(payload: dict[str, Any]) -> None:
+    ensure_database()
+    with _connect() as connection:
+        connection.execute(
+            """
+            INSERT INTO health_events (
+                created_at, source, provider_id, model_id, kind, ability,
+                status, error_class, error_code, message, details_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                payload["created_at"],
+                payload["source"],
+                payload.get("provider_id"),
+                payload.get("model_id"),
+                payload.get("kind"),
+                payload.get("ability"),
+                payload["status"],
+                payload.get("error_class"),
+                payload.get("error_code"),
+                payload.get("message"),
+                json.dumps(payload.get("details")) if payload.get("details") is not None else None,
+            ),
+        )
+        connection.commit()
+
+
+def list_provider_model_policies() -> list[dict[str, Any]]:
+    ensure_database()
+    with _connect() as connection:
+        rows = connection.execute(
+            """
+            SELECT provider_id, model_id, kind, manual_enabled, supported_abilities_json, updated_at
+            FROM provider_model_policies
+            ORDER BY provider_id ASC, kind ASC, model_id ASC
+            """
+        ).fetchall()
+    return [
+        {
+            "provider_id": row["provider_id"],
+            "model_id": row["model_id"],
+            "kind": row["kind"],
+            "manual_enabled": bool(row["manual_enabled"]),
+            "supported_abilities": json.loads(row["supported_abilities_json"]),
+            "updated_at": row["updated_at"],
+        }
+        for row in rows
+    ]
+
+
+def upsert_provider_model_policy(payload: dict[str, Any]) -> None:
+    ensure_database()
+    with _connect() as connection:
+        connection.execute(
+            """
+            INSERT INTO provider_model_policies (
+                provider_id, model_id, kind, manual_enabled, supported_abilities_json, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, datetime('now'))
+            ON CONFLICT(provider_id, model_id, kind) DO UPDATE SET
+                manual_enabled=excluded.manual_enabled,
+                supported_abilities_json=excluded.supported_abilities_json,
+                updated_at=datetime('now')
+            """,
+            (
+                payload["provider_id"],
+                payload["model_id"],
+                payload["kind"],
+                1 if payload.get("manual_enabled", True) else 0,
+                json.dumps(payload.get("supported_abilities") or []),
+            ),
         )
         connection.commit()
 

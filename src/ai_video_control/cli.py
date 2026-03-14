@@ -11,6 +11,7 @@ from rich.panel import Panel
 
 from ai_video_control.io import make_relative_path, read_yaml, write_json, write_yaml
 from ai_video_control.models import CharacterBible, VideoJob
+from ai_video_control.paths import ARTIFACTS_VIDEO_DIR, CHARACTERS_DIR, WORKFLOWS_DIR
 from ai_video_control.providers.cogvideox import render_with_cogvideox
 from ai_video_control.providers.comfyui import render_with_comfyui
 from ai_video_control.providers.openai_compat import (
@@ -356,11 +357,10 @@ def create_job(
         },
     }
 
-    repo_root = Path.cwd()
     character_slug = character.slug
     if provider == "comfyui":
-        workflow_path = repo_root / "examples" / "workflows" / "comfyui_i2v_template.json"
-        output_dir_path = repo_root / "artifacts" / "video" / "comfyui" / character_slug
+        workflow_path = WORKFLOWS_DIR / "comfyui_i2v_template.json"
+        output_dir_path = ARTIFACTS_VIDEO_DIR / "comfyui" / character_slug
         payload["comfyui"] = {
             "workflow_path": make_relative_path(workflow_path, output_dir),
             "output_dir": make_relative_path(output_dir_path, output_dir),
@@ -381,7 +381,7 @@ def create_job(
         payload["cogvideox"] = {
             "model_id": "THUDM/CogVideoX-5b-I2V",
             "output_path": make_relative_path(
-                repo_root / "artifacts" / "video" / "cogvideox" / character_slug / f"{job_id}.mp4",
+                ARTIFACTS_VIDEO_DIR / "cogvideox" / character_slug / f"{job_id}.mp4",
                 output_dir,
             ),
             "torch_dtype": "bfloat16",

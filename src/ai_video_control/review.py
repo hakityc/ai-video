@@ -10,6 +10,10 @@ import subprocess
 import time
 from typing import Any, Dict, List
 
+try:
+    import imageio.v3 as iio
+except ImportError:  # pragma: no cover - optional dependency in lean envs
+    iio = None
 from PIL import Image
 
 from ai_video_control.providers.openai_compat import OpenAICompatClient
@@ -195,6 +199,8 @@ def review_episode(
     context: str = "",
 ) -> Dict[str, Any]:
     manifest_path = episode_dir / "manifest.json"
+    if not manifest_path.exists():
+        raise FileNotFoundError(f"剧集目录中未找到 manifest.json: {episode_dir}，请先确保该剧集已成功生成视频。")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     anchor_image = Path(manifest["anchor_local"])
     client = OpenAICompatClient(settings)
@@ -253,6 +259,8 @@ def review_keyframe_set(
     context: str = "",
 ) -> Dict[str, Any]:
     manifest_path = episode_dir / "manifest.json"
+    if not manifest_path.exists():
+        raise FileNotFoundError(f"剧集目录中未找到 manifest.json: {episode_dir}，请先确保该剧集已成功生成关键帧。")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     anchor_image = Path(manifest["anchor_local"])
     client = OpenAICompatClient(settings)
@@ -436,6 +444,8 @@ def extract_tail_frames(
     tail_ratio: float = 0.2,
     max_frames: int = 6,
 ) -> List[Path]:
+    if iio is None:
+        raise RuntimeError("imageio is required for frame extraction. Install project dependencies before QA review.")
     output_dir.mkdir(parents=True, exist_ok=True)
     frames = list(iio.imiter(video_path))
     if not frames:

@@ -9,16 +9,19 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 import uvicorn
 
+from ai_video_control.paths import REPO_ROOT
+
 from ai_video_control.web_service import (
-    REPO_ROOT,
     analyze_video_job_plan,
     create_video_job,
     ensure_character_generation_text_model_supported,
+    get_app_state,
     generate_character_assets,
     generate_story_script,
-    get_app_state,
-    read_text_file,
     refresh_model_catalog,
+    save_provider_connections,
+    save_settings,
+    read_text_file,
     render_shortform,
     render_video_job,
     resolve_repo_path,
@@ -27,14 +30,12 @@ from ai_video_control.web_service import (
     run_keyframe_review,
     run_master_scene_review,
     generate_storyboard_outline,
-    save_settings,
-    save_provider_connections,
     search_shortform_candidates,
 )
 from ai_video_control.web_tasks import get_task, list_tasks, submit_task
+from ai_video_control.healthcheck import apply_health_action, run_health_checks
 
-
-DIST_DIR = REPO_ROOT / "frontend" / "admin-react" / "dist"
+DIST_DIR = REPO_ROOT / "apps" / "admin-react" / "dist"
 
 app = FastAPI(title="AI Video Studio Console")
 app.add_middleware(
@@ -64,6 +65,17 @@ class SettingsPayload(BaseModel):
 class ProviderSettingsPayload(BaseModel):
     selected_provider_id: str = ""
     providers: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class ProviderHealthRunPayload(BaseModel):
+    provider_ids: list[str] = Field(default_factory=list)
+    model_ids: list[str] = Field(default_factory=list)
+    abilities: list[str] = Field(default_factory=list)
+    include_disabled: bool = False
+
+
+class ProviderHealthActionPayload(BaseModel):
+    action: str
 
 
 class ScriptGenerationPayload(BaseModel):
@@ -172,9 +184,26 @@ def api_save_providers(payload: ProviderSettingsPayload) -> dict[str, Any]:
     return save_provider_connections(payload.selected_provider_id, payload.providers)
 
 
+@app.post("/api/providers/health/run")
+def api_run_provider_health(payload: ProviderHealthRunPayload) -> dict[str, Any]:
+    return {
+        "health_report": run_health_checks(
+            provider_ids=payload.provider_ids or None,
+            model_ids=payload.model_ids or None,
+            abilities=payload.abilities or None,
+            include_disabled=payload.include_disabled,
+        )
+    }
+
+
+@app.post("/api/providers/health/apply")
+def api_apply_provider_health(payload: ProviderHealthActionPayload) -> dict[str, Any]:
+    return apply_health_action(payload.action)
+
+
 @app.post("/api/models/refresh")
 def api_refresh_models() -> dict[str, Any]:
-    return {"catalog": refresh_model_catalog()}
+    return {"health_report": refresh_model_catalog(), "state": get_app_state()}
 
 
 @app.post("/api/scripts/generate")
