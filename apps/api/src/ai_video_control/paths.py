@@ -15,9 +15,19 @@ def _resolve_env(name: str) -> Path | None:
     return Path(raw).resolve() if raw else None
 
 
-# Root of the repository (where pyproject.toml lives).
+def _find_repo_root() -> Path:
+    """Traverse up the directory tree to find the monorepo root."""
+    current = Path(__file__).resolve().parent
+    while current != current.parent:
+        if (current / "package.json").exists() and (current / "apps").exists():
+            return current
+        current = current.parent
+    return Path.cwd().resolve()
+
+
+# Root of the repository (where the workspace pyproject.toml and package.json lives).
 # Can be overridden via AIVIDEO_REPO_ROOT for edge-case deployments.
-REPO_ROOT: Path = _resolve_env("AIVIDEO_REPO_ROOT") or Path.cwd().resolve()
+REPO_ROOT: Path = _resolve_env("AIVIDEO_REPO_ROOT") or _find_repo_root()
 
 # Root of the data directory.  Defaults to REPO_ROOT so existing
 # on-disk layouts need no changes.  Set AIVIDEO_DATA_DIR to a different

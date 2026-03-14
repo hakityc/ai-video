@@ -71,4 +71,4 @@ if [ -n "$existing_pid" ]; then
   esac
 fi
 
-exec uv run aivideo-web
+exec uv run --project apps/api aivideo-web
