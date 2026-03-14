@@ -11,7 +11,7 @@ from ai_video_control.storage import get_task_record, list_task_records, upsert_
 EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="aivideo-web")
 
 
-def submit_task(kind: str, label: str, fn: Callable[[], Any]) -> dict[str, Any]:
+def submit_task(kind: str, label: str, fn: Callable[[], Any], task_payload: dict[str, Any] | None = None) -> dict[str, Any]:
     task_id = uuid.uuid4().hex
     payload = {
         "id": task_id,
@@ -23,6 +23,7 @@ def submit_task(kind: str, label: str, fn: Callable[[], Any]) -> dict[str, Any]:
         "ended_at": None,
         "result": None,
         "error": None,
+        "payload": task_payload,
     }
     _write_task(task_id, payload)
     EXECUTOR.submit(_run_task, task_id, fn)

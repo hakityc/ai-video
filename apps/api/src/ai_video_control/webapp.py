@@ -231,6 +231,7 @@ def api_generate_script(payload: ScriptGenerationPayload) -> dict[str, Any]:
             payload.length_profile or None,
             payload.seed_text,
         ),
+        task_payload=payload.model_dump(),
     )
     return {"task": task}
 
@@ -252,6 +253,7 @@ def api_generate_character(payload: CharacterGenerationPayload) -> dict[str, Any
             payload.reference_preset,
             payload.reference_image or None,
         ),
+        task_payload=payload.model_dump(),
     )
     return {"task": task}
 
@@ -285,6 +287,7 @@ def api_render_job(payload: JobRenderPayload) -> dict[str, Any]:
         kind="render_job",
         label=f"渲染任务 {payload.job_path}",
         fn=lambda: render_video_job(payload.job_path, payload.provider_override),
+        task_payload=payload.model_dump(),
     )
     return {"task": task}
 
@@ -319,6 +322,7 @@ def api_render_episode(payload: EpisodeActionPayload) -> dict[str, Any]:
             duration=payload.duration,
             resolution=payload.resolution or None,
         ),
+        task_payload=payload.model_dump(),
     )
     return {"task": task}
 
