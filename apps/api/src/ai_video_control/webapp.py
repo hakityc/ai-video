@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 import uvicorn
 
 from ai_video_control.paths import REPO_ROOT
+from ai_video_control.ws_manager import manager
 
 from ai_video_control.web_service import (
     analyze_video_job_plan,
@@ -159,6 +160,16 @@ def api_state() -> dict[str, Any]:
         "app": get_app_state(),
         "tasks": list_tasks(),
     }
+
+
+@app.websocket("/api/ws")
+async def websocket_endpoint(websocket: WebSocket) -> None:
+    await manager.connect(websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
 
 
 @app.get("/api/tasks")

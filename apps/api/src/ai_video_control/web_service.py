@@ -283,6 +283,7 @@ def list_characters() -> list[dict[str, Any]]:
                 "slug": data.slug,
                 "name": data.name,
                 "path": repo_relative(path),
+                "updated_at": path.stat().st_mtime,
                 "reference_count": len(data.reference_images),
                 "style_descriptors": data.style_descriptors,
                 "negative_prompt": data.negative_prompt,
@@ -293,7 +294,7 @@ def list_characters() -> list[dict[str, Any]]:
                 "generation_metadata_path": repo_relative(metadata_path) if metadata_path.exists() else None,
             }
         )
-    return items
+    return sorted(items, key=lambda item: item["updated_at"], reverse=True)
 
 
 def list_scenes() -> list[dict[str, Any]]:

@@ -47,6 +47,8 @@ def _run_task(task_id: str, fn: Callable[[], Any]) -> None:
     payload["status"] = "running"
     payload["started_at"] = _now()
     _write_task(task_id, payload)
+    from ai_video_control.ws_manager import manager
+    manager.sync_broadcast({"type": "state_updated"})
     try:
         result = fn()
         payload["status"] = "succeeded"
@@ -59,6 +61,7 @@ def _run_task(task_id: str, fn: Callable[[], Any]) -> None:
         }
     payload["ended_at"] = _now()
     _write_task(task_id, payload)
+    manager.sync_broadcast({"type": "state_updated"})
 
 
 def _write_task(task_id: str, payload: dict[str, Any]) -> None:
