@@ -1,8 +1,0 @@
-[project]
-name = "ai-video-workspace"
-version = "0.0.0"
-requires-python = ">=3.9"
-description = "AI Video Studio Monorepo Workspace"
-
-[workspace]
-members = ["apps/api"]
