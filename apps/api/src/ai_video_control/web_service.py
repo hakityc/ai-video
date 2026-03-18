@@ -544,7 +544,12 @@ def generate_character_assets(
         image_model=image_model,
     )
     if reference_image:
-        reference_path = resolve_repo_path(reference_image)
+        if reference_image.startswith("http://") or reference_image.startswith("https://"):
+            image_url_payload = {"url": reference_image}
+        else:
+            reference_path = resolve_repo_path(reference_image)
+            image_url_payload = {"url": image_path_to_data_url(reference_path)}
+
         brief = client.chat_json_with_content(
             [
                 {
@@ -552,13 +557,13 @@ def generate_character_assets(
                     "text": (
                         "Use the attached image as the primary visual source of truth. "
                         "Extract stable identity anchors from the person in the image, then merge them with the concept. "
-                        "Return JSON only with keys: name, age_range, face, hair, body, outfit, accessories, "
+                        "Return JSON only with keys: name, gender, age_range, face, hair, body, outfit, accessories, "
                         "style_descriptors, color_palette, negative_prompt. "
                         "Keep descriptors reusable for consistent character image generation. "
                         f"Concept extension: {concept}"
                     ),
                 },
-                {"type": "image_url", "image_url": {"url": image_path_to_data_url(reference_path)}},
+                {"type": "image_url", "image_url": image_url_payload},
             ],
             model=text_model or None,
             max_tokens=1400,
@@ -584,15 +589,17 @@ def generate_character_assets(
     bible_payload = {
         "version": "1",
         "slug": slug_value,
-        "name": brief["name"],
+        "name": brief.get("name", slug_value),
+        "age_range": brief.get("age_range", ""),
+        "gender": brief.get("gender", ""),
         "identity_anchors": {
-            "face": brief["face"],
-            "hair": brief["hair"],
-            "body": brief["body"],
-            "outfit": brief["outfit"],
-            "accessories": brief["accessories"],
+            "face": brief.get("face", []),
+            "hair": brief.get("hair", []),
+            "body": brief.get("body", []),
+            "outfit": brief.get("outfit", []),
+            "accessories": brief.get("accessories", []),
         },
-        "style_descriptors": brief["style_descriptors"],
+        "style_descriptors": brief.get("style_descriptors", []),
         "color_palette": brief.get("color_palette", []),
         "prompt_template": "${name}, ${identity}, ${scene_prompt}, ${style}",
         "negative_prompt": negative_prompt,

@@ -236,8 +236,9 @@ class OpenAICompatClient:
         return response.json()
 
     def download_file(self, url: str, output_path: Path) -> Path:
-        with httpx.Client(timeout=120.0) as dl_client:
-            response = dl_client.get(url)
+        with httpx.Client(timeout=120.0, follow_redirects=True) as dl_client:
+            headers = {"User-Agent": "Mozilla/5.0"}
+            response = dl_client.get(url, headers=headers)
             response.raise_for_status()
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_bytes(response.content)
@@ -294,11 +295,28 @@ def build_reference_image_prompts(
     brief: Dict[str, Any],
     reference_preset: str = "standard",
 ) -> List[Dict[str, str]]:
-    name = brief["name"]
-    anchors = ", ".join(
-        brief["face"] + brief["hair"] + brief["body"] + brief["outfit"] + brief["accessories"]
-    )
-    style = ", ".join(brief["style_descriptors"])
+    name = brief.get("name", "Character")
+    age = brief.get("age_range", "")
+    gender = brief.get("gender", "")
+    
+    # Prefix identity elements explicitly to force model adherence
+    identity_parts = []
+    if age or gender:
+        identity_parts.append(f"A {age} {gender}".strip())
+    
+    if brief.get("face"):
+        identity_parts.append("face: " + ", ".join(brief["face"]))
+    if brief.get("hair"):
+        identity_parts.append("hair: " + ", ".join(brief["hair"]))
+    if brief.get("body"):
+        identity_parts.append("body/build: " + ", ".join(brief["body"]))
+    if brief.get("outfit"):
+        identity_parts.append("wearing outfit: " + ", ".join(brief["outfit"]))
+    if brief.get("accessories"):
+        identity_parts.append("accessories: " + ", ".join(brief["accessories"]))
+        
+    anchors = " | ".join(identity_parts)
+    style = ", ".join(brief.get("style_descriptors", []))
     common = (
         f"{name}, {anchors}, {style}, grounded cinematic live-action character design, "
         "high detail, realistic skin texture, natural anatomy, consistent face identity"

@@ -44,7 +44,6 @@ import {
   EmptyState,
 } from "../../components/ProjectUI"
 import {
-  cn,
   blockedOptionsForAbility,
   filterModelGroupsByAbility,
   matchesQuery,
@@ -55,8 +54,6 @@ import {
   scriptLengthOptions,
   scriptSeedPresets,
   characterSeedPresets,
-  characterPresetOptions,
-  characterConsistencyTags,
 } from "../../constants"
 import type {
   AppStateResponse,
@@ -84,7 +81,6 @@ interface GenerationViewProps {
 export function GenerationView({
   data,
   activeSecondary,
-  refreshState,
   runBackgroundAction,
   openText,
   switchPrimary,
@@ -282,14 +278,7 @@ export function GenerationView({
     setCharacterAdvancedOpen(true)
   }
 
-  const toggleCharacterTag = (tag: string) => {
-    setCharacterForm((current) => ({
-      ...current,
-      consistency_tags: current.consistency_tags.includes(tag)
-        ? current.consistency_tags.filter((t) => t !== tag)
-        : [...current.consistency_tags, tag],
-    }))
-  }
+
 
   const buildCharacterConcept = () => {
     const lines = [characterForm.concept.trim()]
@@ -540,6 +529,81 @@ export function GenerationView({
               placeholder="尽量写清楚脸型、发型、年龄感、穿着、气质和世界观。"
             />
           </Field>
+          <Field label="参考图 (图生图)" description="上传新图片、粘贴图片链接，或选择已有角色图，优先从中提取面部和服装特征。">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  className="w-full max-w-[200px] cursor-pointer"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    const formData = new FormData()
+                    formData.append("file", file)
+                    try {
+                      const res = await fetch("/api/upload", { method: "POST", body: formData })
+                      if (!res.ok) throw new Error("Upload failed")
+                      const { path } = await res.json()
+                      setCharacterForm((current) => ({ ...current, reference_image: path }))
+                    } catch (err) {
+                      console.error("Upload failed", err)
+                      alert("图片上传失败")
+                    }
+                  }}
+                />
+                <span className="text-xs text-white/45">或</span>
+                <Input
+                  type="text"
+                  placeholder="粘贴图片URL (http/https)"
+                  className="w-full max-w-[200px]"
+                  value={characterForm.reference_image?.startsWith("http") ? characterForm.reference_image : ""}
+                  onChange={(e) => {
+                    const val = e.target.value.trim()
+                    // Only update if it's a URL or if it's being cleared while currently a URL
+                    if (val.startsWith("http") || val === "") {
+                      setCharacterForm((current) => ({ ...current, reference_image: val }))
+                    }
+                  }}
+                />
+                <span className="text-xs text-white/45">或</span>
+                <Select
+                  value={
+                    !characterForm.reference_image 
+                      ? "__none__" 
+                      : characterForm.reference_image.startsWith("http")
+                      ? "__none__"
+                      : characterForm.reference_image
+                  }
+                  onValueChange={(value) =>
+                    setCharacterForm((current) => ({
+                      ...current,
+                      reference_image: value === "__none__" ? "" : value,
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-full max-w-[200px]">
+                    <SelectValue placeholder="不使用参考图" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">不使用参考图</SelectItem>
+                    {allReferenceOptions.map((item) => (
+                      <SelectItem key={item.path} value={item.path}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {characterForm.reference_image && (
+                <div className="text-xs text-emerald-400 break-all">
+                  已选用: {characterForm.reference_image.startsWith("http") 
+                    ? characterForm.reference_image 
+                    : characterForm.reference_image.split('/').pop()}
+                </div>
+              )}
+            </div>
+          </Field>
           <Collapsible open={characterAdvancedOpen} onOpenChange={setCharacterAdvancedOpen} className="space-y-3">
             <CollapsibleTrigger asChild>
               <Button variant="outline" className="w-full justify-between border-white/10 bg-black/20">
@@ -548,7 +612,7 @@ export function GenerationView({
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
+              <div>
                 <Field label="文本模型">
                   <ModelField
                     value={characterForm.text_model}
@@ -563,85 +627,6 @@ export function GenerationView({
                     }
                   />
                 </Field>
-                <Field label="参考图方案">
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-2 rounded-2xl bg-white/5 p-1">
-                      {characterPresetOptions.map((option) => {
-                        const selected = characterForm.reference_preset === option.value
-                        return (
-                          <button
-                            key={option.value}
-                            type="button"
-                            aria-pressed={selected}
-                            onClick={() =>
-                              setCharacterForm((current) => ({ ...current, reference_preset: option.value }))
-                            }
-                            className={cn(
-                              "rounded-xl border px-4 py-2 text-sm font-medium transition-colors",
-                              selected
-                                ? "border-white/20 bg-white text-black"
-                                : "border-transparent bg-transparent text-white/65 hover:bg-white/8 hover:text-white",
-                            )}
-                          >
-                            {option.label}
-                          </button>
-                        )
-                      })}
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm leading-6 text-white/65">
-                      {characterPresetOptions.find((option) => option.value === characterForm.reference_preset)?.description}
-                    </div>
-                  </div>
-                </Field>
-              </div>
-              <Field label="参考图驱动 / 图生图参考" description="先选一张已有角色图，系统会优先从图里抽锚点再扩展。">
-                <Select
-                  value={characterForm.reference_image || "__none__"}
-                  onValueChange={(value) =>
-                    setCharacterForm((current) => ({
-                      ...current,
-                      reference_image: value === "__none__" ? "" : value,
-                    }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="不使用参考图" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">只用文本概念生成</SelectItem>
-                    {allReferenceOptions.map((item) => (
-                      <SelectItem key={item.path} value={item.path}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field label="一致性增强按钮">
-                <div className="flex flex-wrap gap-2">
-                  {characterConsistencyTags.map((tag) => (
-                    <Button
-                      key={tag}
-                      type="button"
-                      size="sm"
-                      variant={characterForm.consistency_tags.includes(tag) ? "default" : "outline"}
-                      onClick={() => toggleCharacterTag(tag)}
-                      className={cn(
-                        "rounded-full",
-                        characterForm.consistency_tags.includes(tag) ? "" : "border-white/10 bg-white/5",
-                      )}
-                    >
-                      {tag}
-                    </Button>
-                  ))}
-                </div>
-              </Field>
-              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm leading-6 text-white/62">
-                当前会生成：
-                {characterForm.reference_preset === "turnaround"
-                  ? " 正脸、3/4、侧脸、全身四张参考图，更适合做链式短剧。"
-                  : " 正脸和 3/4 两张参考图，更适合快速试角色。"}
-                {characterForm.reference_image ? " 已启用参考图驱动，会优先继承现有角色图的脸、发型和服装锚点。" : ""}
               </div>
               {blockedCharacterTextModelReason ? (
                 <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm leading-6 text-amber-50">

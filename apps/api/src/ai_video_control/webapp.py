@@ -2,14 +2,16 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 import uvicorn
+import shutil
+import uuid
 
-from ai_video_control.paths import REPO_ROOT
+from ai_video_control.paths import REPO_ROOT, ARTIFACTS_TMP_DIR
 from ai_video_control.ws_manager import manager
 
 from ai_video_control.web_service import (
@@ -379,6 +381,23 @@ def api_text(path: str) -> dict[str, Any]:
         return read_text_file(path)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail="File not found") from exc
+
+
+@app.post("/api/upload")
+async def api_upload(file: UploadFile = File(...)) -> dict[str, Any]:
+    ARTIFACTS_TMP_DIR.mkdir(parents=True, exist_ok=True)
+    ext = ""
+    if file.filename:
+        idx = file.filename.rfind(".")
+        if idx != -1:
+            ext = file.filename[idx:]
+    unique_name = f"upload_{uuid.uuid4().hex}{ext}"
+    out_path = ARTIFACTS_TMP_DIR / unique_name
+    with out_path.open("wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    # Return repo relative path
+    rel_path = out_path.relative_to(REPO_ROOT)
+    return {"path": str(rel_path)}
 
 
 @app.get("/api/files/{relative_path:path}")

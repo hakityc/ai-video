@@ -64,6 +64,7 @@ ASSETS_CHARACTERS_DIR: Path = DATA_ROOT / "assets" / "characters"
 # ---------------------------------------------------------------------------
 
 ARTIFACTS_DIR: Path = DATA_ROOT / "artifacts"
+ARTIFACTS_TMP_DIR: Path = ARTIFACTS_DIR / "tmp"
 ARTIFACTS_VIDEO_DIR: Path = ARTIFACTS_DIR / "video"
 ARTIFACTS_OUTPUT_DIR: Path = ARTIFACTS_DIR / "output"
 ARTIFACTS_BRIDGE_FRAMES_DIR: Path = ARTIFACTS_DIR / "bridge-frames"
