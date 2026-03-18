@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+:root {
+  --background: #efe6d7;
+  --foreground: #f8f5ef;
+  --sand: #efe6d7;
+  --ink: #161513;
+  --panel: rgba(20, 18, 16, 0.64);
+  --panel-soft: rgba(255, 250, 241, 0.08);
+  --border: rgba(255, 255, 255, 0.11);
+  --accent: #f79256;
+  --accent-soft: #ffd79a;
+  --mint: #72d2bb;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), serif;
+}
+
+.glass-panel {
+  position: relative;
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01)),
+    var(--panel);
+  backdrop-filter: blur(22px);
+  box-shadow:
+    0 30px 120px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-radius: 32px;
+}
+
+.grid-sheen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.65), transparent 88%);
+}
+
+.section-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(247, 146, 86, 0.24);
+  background: rgba(247, 146, 86, 0.12);
+  padding: 0.4rem 0.8rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  color: #ffddbd;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(10, 10, 10, 0.28);
+  color: white;
+  padding: 0.9rem 1rem;
+  outline: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.32);
+}
+
+button {
+  cursor: pointer;
+}
+
+.primary-button {
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+  color: #1a120f;
+  font-weight: 600;
+  padding: 0.85rem 1.3rem;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+  box-shadow: 0 18px 40px rgba(247, 146, 86, 0.28);
+}
+
+.primary-button:hover {
+  transform: translateY(-1px);
+}
+
+.secondary-button {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  padding: 0.85rem 1.1rem;
+}

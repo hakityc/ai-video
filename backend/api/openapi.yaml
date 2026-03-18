@@ -1,0 +1,60 @@
+openapi: 3.1.0
+info:
+  title: AI Video Backend API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /healthz:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+  /api/v1/projects:
+    get:
+      summary: List projects
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Create project
+      responses:
+        "201":
+          description: Created
+  /api/v1/projects/{id}:
+    get:
+      summary: Get project detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+  /api/v1/episodes/{id}/story-card:generate:
+    post:
+      summary: Generate story card
+      responses:
+        "200":
+          description: OK
+  /api/v1/episodes/{id}/storyboard:generate:
+    post:
+      summary: Generate storyboard
+      responses:
+        "200":
+          description: OK
+  /api/v1/shots/{id}/generate:
+    post:
+      summary: Queue shot generation
+      responses:
+        "202":
+          description: Accepted
+  /api/v1/episodes/{id}/render:
+    post:
+      summary: Queue render job
+      responses:
+        "202":
+          description: Accepted
